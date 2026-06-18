@@ -25,6 +25,12 @@ mobile/ios/.symlinks/
 .DS_Store
 Thumbs.db
 
+# Temp/reference images
+ref1.jpeg
+ref1_small.png
+ref2.jpeg
+ref2_small.png
+
 # IDE
 .vscode/
 .idea/
