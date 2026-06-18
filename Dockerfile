@@ -2,11 +2,14 @@ FROM node:20-slim
 
 WORKDIR /app
 
+# Install build tools for native modules (better-sqlite3)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
 # Copy package files
 COPY backend/package.json backend/package-lock.json ./
 
 # Install dependencies
-RUN npm ci --production=false
+RUN npm ci
 
 # Copy source
 COPY backend/ ./
@@ -14,12 +17,11 @@ COPY backend/ ./
 # Build TypeScript
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# Create data directory for SQLite
+RUN mkdir -p /app/data
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health',r=>{process.exit(r.statusCode===200?0:1)})"
+# Expose port (Railway sets PORT env var)
+EXPOSE ${PORT:-3000}
 
 # Start
 CMD ["node", "dist/server.js"]

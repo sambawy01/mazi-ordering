@@ -16,7 +16,7 @@ export const config = {
     branchId: process.env.FOODICS_BRANCH_ID || '',
   },
   backend: {
-    port: parseInt(process.env.BACKEND_PORT || '3000', 10),
+    port: parseInt(process.env.PORT || process.env.BACKEND_PORT || '3000', 10),
     jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-me',
     dbPath: process.env.DB_PATH || './data/foodics.db',
   },
