@@ -187,24 +187,24 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 
 <!-- HOME -->
 <div class="s hm act" id="s-home">
-<div class="lg"><img src="assets/mazi_logo.jpeg" alt="MAZI"></div>
-<h1>MAZI</h1>
-<p class="tg">Together by the sea</p>
-<p class="tg2">Καλώς ήρθατε · Welcome</p>
+<div class="lg" style="background:transparent;border:none;box-shadow:none;width:192px;height:192px"><img src="assets/mazi_logo_clean.png" style="width:100%;height:100%;object-fit:contain" alt="MAZI"></div>
 <div class="bs2">
-<div class="fld" style="margin-bottom:12px">
-<input id="homePosId" placeholder="POS ID" style="background:rgba(255,255,255,.9);border:1.5px solid rgba(255,255,255,.3);color:#0D47A1;font-weight:600;text-align:center;font-size:16px;padding:16px" onkeypress="if(event.key==='Enter')doLogin()">
-</div>
-<button class="rb" style="justify-content:center;padding:16px" onclick="doLogin()"><div class="lb" style="text-align:center">Enter as Staff</div></button>
-<div style="display:flex;align-items:center;gap:12px;margin:20px 0;opacity:.5">
-<div style="flex:1;height:1px;background:#fff"></div>
-<span style="font-size:12px;text-transform:uppercase;letter-spacing:1px">or</span>
-<div style="flex:1;height:1px;background:#fff"></div>
-</div>
-<button class="rb" style="justify-content:center;padding:16px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3)" onclick="go('qr')">
-<div class="ic" style="background:transparent;font-size:28px">📷</div>
+<button class="rb" style="justify-content:center;padding:18px;background:rgba(255,255,255,.95);color:#0D47A1" onclick="go('qr')">
+<div class="ic" style="background:transparent;font-size:30px">📷</div>
 <div class="lb" style="text-align:center">Scan Table QR</div>
 </button>
+<div style="display:flex;align-items:center;gap:12px;margin:20px 0;opacity:.4">
+<div style="flex:1;height:1px;background:#fff"></div>
+<span style="font-size:11px;text-transform:uppercase;letter-spacing:1px">or</span>
+<div style="flex:1;height:1px;background:#fff"></div>
+</div>
+<div class="fld" style="margin-bottom:10px">
+<input id="homePosId" placeholder="ID" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:400;text-align:center;font-size:14px;padding:12px" onkeypress="if(event.key==='Enter')doLogin()">
+</div>
+<div class="fld" style="margin-bottom:12px">
+<input id="homePin" type="password" placeholder="PIN" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:400;text-align:center;font-size:14px;padding:12px" onkeypress="if(event.key==='Enter')doLogin()">
+</div>
+<button onclick="doLogin()" style="width:100%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:12px;padding:12px;font-size:14px;cursor:pointer;font-family:inherit">Login</button>
 </div>
 </div>
 
@@ -230,6 +230,49 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 <p class="in">Scan the QR code on your table to explore our meze menu and place your order.</p>
 <button class="sb2" onclick="simulateScan()">Scan QR Code</button>
 <button class="btn bo" style="margin-top:16px;color:#fff;border-color:rgba(255,255,255,.4);width:auto" onclick="go('home')">Cancel</button>
+</div>
+</div>
+
+<!-- PHONE ENTRY -->
+<div class="s" id="s-phone">
+<div class="ab" style="background:var(--blue-bg)"><button class="bk" onclick="go('home')" style="background:rgba(0,0,0,.1);color:#0D47A1">‹</button><h1 style="color:#0D47A1">Welcome to MAZI</h1></div>
+<div class="ct" style="background:var(--blue-bg);display:flex;flex-direction:column;align-items:center;padding-top:40px">
+<img src="assets/mazi_logo_clean.png" style="width:100px;height:100px;object-fit:contain;margin-bottom:24px" alt="MAZI">
+<h2 style="font-family:var(--serif);font-size:24px;color:#0D47A1;margin-bottom:8px">Table 5 · Terrace</h2>
+<p style="font-size:14px;color:#0D47A1;opacity:.7;margin-bottom:32px;text-align:center">Enter your phone number to start your order.<br>We'll send you a confirmation code.</p>
+<div class="fld" style="width:100%;max-width:300px;margin-bottom:16px">
+<label style="color:#0D47A1;font-weight:600;font-size:13px;margin-bottom:6px;display:block">Phone Number</label>
+<div style="display:flex;gap:8px">
+<select id="phoneCountry" style="padding:14px 8px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-size:15px;font-family:inherit;background:#fff;color:#0D47A1">
+<option>+30 🇬🇷</option>
+<option>+1 🇺🇸</option>
+<option>+44 🇬🇧</option>
+<option>+971 🇦🇪</option>
+<option>+966 🇸🇦</option>
+<option>+20 🇪🇬</option>
+</select>
+<input id="phoneInput" placeholder="694 123 4567" style="flex:1;padding:14px 16px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-size:15px;font-family:inherit;background:#fff;color:#0D47A1" type="tel" onkeypress="if(event.key==='Enter')sendOtp()">
+</div>
+</div>
+<button class="btn bp" style="max-width:300px;margin-bottom:12px" onclick="sendOtp()">Send Code</button>
+<p id="phoneError" style="color:var(--red);font-size:13px;margin-top:8px;display:none"></p>
+</div>
+</div>
+
+<!-- PHONE CONFIRM (OTP) -->
+<div class="s" id="s-otp">
+<div class="ab" style="background:var(--blue-bg)"><button class="bk" onclick="go('phone')" style="background:rgba(0,0,0,.1);color:#0D47A1">‹</button><h1 style="color:#0D47A1">Confirm</h1></div>
+<div class="ct" style="background:var(--blue-bg);display:flex;flex-direction:column;align-items:center;padding-top:40px">
+<div style="width:80px;height:80px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:24px;box-shadow:var(--sh)">📱</div>
+<h2 style="font-family:var(--serif);font-size:22px;color:#0D47A1;margin-bottom:8px">Enter the code</h2>
+<p id="otpPhoneDisplay" style="font-size:14px;color:#0D47A1;opacity:.7;margin-bottom:32px;text-align:center">We sent a code to your phone</p>
+<div class="fld" style="width:100%;max-width:280px;margin-bottom:20px">
+<input id="otpInput" placeholder="• • • •" maxlength="4" style="text-align:center;letter-spacing:16px;font-size:28px;font-weight:700;padding:14px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-family:inherit;background:#fff;color:#0D47A1" onkeypress="if(event.key==='Enter')verifyOtp()">
+</div>
+<button class="btn bp" style="max-width:280px;margin-bottom:12px" onclick="verifyOtp()">Confirm</button>
+<button class="btn bo" style="max-width:280px;border-color:#B0D0E8;color:#0D47A1" onclick="sendOtp()">Resend Code</button>
+<p id="otpError" style="color:var(--red);font-size:13px;margin-top:8px;display:none"></p>
+<p style="font-size:12px;color:#0D47A1;opacity:.5;margin-top:16px">Demo: enter any 4 digits</p>
 </div>
 </div>
 
@@ -312,16 +355,19 @@ const products=[
 ];
 const statuses=[{lb:'Order Placed',ic:'📝'},{lb:'Sent to Kitchen',ic:'📤'},{lb:'Preparing',ic:'👨‍🍳'},{lb:'Ready to Serve',ic:'✅'},{lb:'Served',ic:'🍽️'}];
 let cart=[],curQty=1,curProd=null,curCat='Meze',waiter='Nikos',ordProg=0,ordInt=null;
-const sm={home:'s-home',login:'s-login',tables:'s-tables',td:'s-td',qr:'s-qr',cm:'s-cm',menu:'s-menu',cart:'s-cart',os:'s-os'};
+const sm={home:'s-home',login:'s-login',tables:'s-tables',td:'s-td',qr:'s-qr',phone:'s-phone',otp:'s-otp',cm:'s-cm',menu:'s-menu',cart:'s-cart',os:'s-os'};
 
 function go(n){Object.values(sm).forEach(id=>document.getElementById(id).classList.remove('act'));document.getElementById(sm[n]).classList.add('act');document.getElementById(sm[n]).scrollTop=0;if(n==='tables')renderTables();if(n==='cart')renderCart();if(n==='menu')renderMenu();if(n==='cm')renderPop()}
-function doLogin(){const a=document.getElementById('homePosId')?document.getElementById('homePosId').value.trim():'';if(a){go('tables');toast('Welcome, '+waiter+'!')}else toast('Please enter your POS ID')}
+function doLogin(){const a=document.getElementById('homePosId')?document.getElementById('homePosId').value.trim():'';const p=document.getElementById('homePin')?document.getElementById('homePin').value.trim():'';if(a&&p){go('tables');toast('Welcome, '+waiter+'!')}else if(!a){toast('Please enter your ID')}else{toast('Please enter your PIN')}}
 function renderTables(){const c=document.getElementById('tablesCt');const secs=[...new Set(tables.map(t=>t.sec))];let h='<div style="font-size:13px;color:var(--osv);margin-bottom:14px;padding:0 4px">👋 Signed in as <b>'+waiter+'</b> · '+tables.filter(t=>t.st==='free').length+' free, '+tables.filter(t=>t.st==='occupied').length+' occupied, '+tables.filter(t=>t.st==='reserved').length+' reserved</div>';secs.forEach(s=>{h+='<div class="sh2">'+s+'</div><div class="tg2">';tables.filter(t=>t.sec===s).forEach(t=>{const cls=t.st==='free'?'bf':t.st==='occupied'?'bo2':'br';const lb=t.st.charAt(0).toUpperCase()+t.st.slice(1);h+='<div class="tc" onclick="openTable('+t.id+')"><div class="tn">T'+t.n+'</div><div class="tc2">'+t.cap+' seats</div><span class="bg '+cls+'"><span class="dt"></span>'+lb+'</span></div>'});h+='</div>'});c.innerHTML=h}
 function refreshTables(){toast('Tables refreshed');renderTables()}
 function openTable(id){const t=tables.find(x=>x.id===id);const c=document.getElementById('tdCt');document.getElementById('tdTitle').textContent='Table '+t.n;const cls=t.st==='free'?'bf':t.st==='occupied'?'bo2':'br';const lb=t.st.charAt(0).toUpperCase()+t.st.slice(1);let h='<div class="ti"><div class="bn">T'+t.n+'</div><div><div style="font-size:17px;font-weight:700">'+t.sec+'</div><div class="mt">'+t.cap+' seats · '+lb+'</div></div></div><div class="card"><div style="font-size:15px;font-weight:700;margin-bottom:8px">Table Details</div><div style="font-size:14px;color:var(--osv);line-height:1.8">Section: <b style="color:var(--os)">'+t.sec+'</b><br>Capacity: <b style="color:var(--os)">'+t.cap+' guests</b><br>Status: <b style="color:var(--os)">'+lb+'</b>'+(t.ord?'<br>Order: <b style="color:var(--os)">'+t.ord.id+'</b><br>Items: <b style="color:var(--os)">'+t.ord.items+'</b><br>Total: <b style="color:var(--pri)">'+t.ord.total+' EUR</b>':'')+'</div></div><div class="da">';if(t.st==='free'){h+='<button class="btn bp" onclick="createOrder('+t.id+')">➕ Create Order</button>'}else if(t.st==='occupied'){h+='<button class="btn bp" onclick="go(\'os\');startProg()">📋 View Order</button><button class="btn bs" onclick="go(\'menu\')">➕ Add Items</button><button class="btn bo" onclick="markFree('+t.id+')">Mark as Free</button>'}else{h+='<button class="btn bp" onclick="createOrder('+t.id+')">➕ Start Service</button><button class="btn bo" onclick="markFree('+t.id+')">Cancel Reservation</button>'}h+='</div>';c.innerHTML=h;go('td')}
 function createOrder(id){const t=tables.find(x=>x.id===id);t.st='occupied';t.ord={id:'O-'+Math.floor(2000+Math.random()*9000),items:0,total:0};toast('Order created for Table '+t.n);openTable(id)}
 function markFree(id){const t=tables.find(x=>x.id===id);t.st='free';t.ord=null;toast('Table '+t.n+' marked as free');go('tables')}
-function simulateScan(){toast('QR scanned! Table 5 · Terrace');setTimeout(()=>go('cm'),600)}
+function simulateScan(){toast('QR scanned! Table 5 · Terrace');setTimeout(()=>go('phone'),600)}
+let guestPhone='';
+function sendOtp(){const c=document.getElementById('phoneCountry');const cc=c?c.options[c.selectedIndex].text.split(' ')[0]:'+30';const n=document.getElementById('phoneInput')?document.getElementById('phoneInput').value.trim():'';if(!n||n.length<5){const e=document.getElementById('phoneError');if(e){e.textContent='Please enter a valid phone number';e.style.display='block'}toast('Please enter your phone number');return}const e=document.getElementById('phoneError');if(e)e.style.display='none';guestPhone=cc+' '+n;const d=document.getElementById('otpPhoneDisplay');if(d)d.textContent='We sent a code to '+guestPhone;toast('Code sent to '+guestPhone);go('otp');setTimeout(()=>{const i=document.getElementById('otpInput');if(i)i.focus()},300)}
+function verifyOtp(){const code=document.getElementById('otpInput')?document.getElementById('otpInput').value.trim():'';if(!code||code.length<4){const e=document.getElementById('otpError');if(e){e.textContent='Please enter the 4-digit code';e.style.display='block'}toast('Please enter the code');return}const e=document.getElementById('otpError');if(e)e.style.display='none';toast('Phone confirmed! Welcome to MAZI');go('cm')}
 function renderPop(){document.getElementById('popGrid').innerHTML=products.filter(p=>p.pop).slice(0,4).map(p=>'<div class="pc" onclick="openSheet('+p.id+')"><div class="im">'+p.em+'</div><div class="if"><div class="nm">'+p.nm+'</div><div class="pr">'+p.pr+' EUR</div></div></div>').join('')}
 function renderMenu(){const cats=['Meze','Main Course','Desserts','Beverages'];document.getElementById('catTabs').innerHTML=cats.map(c=>'<button class="tab '+(c===curCat?'act':'')+'" onclick="setCat(\''+c+'\')">'+c+'</button>').join('');document.getElementById('menuGrid').innerHTML=products.filter(p=>p.cat===curCat).map(p=>'<div class="mc" onclick="openSheet('+p.id+')"><div class="im">'+p.em+'</div><div class="if"><div class="nm">'+p.nm+'</div><div class="ds">'+p.ds+'</div><div class="pr">'+p.pr+' EUR</div></div></div>').join('');updBadges()}
 function setCat(c){curCat=c;renderMenu()}
