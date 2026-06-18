@@ -1,11 +1,11 @@
 [build]
-  builder = "nixpacks"
+  builder = "dockerfile"
 
 [deploy]
-  startCommand = "cd backend && npm run build && node dist/server.js"
+  startCommand = "node dist/server.js"
   healthcheckPath = "/health"
   healthcheckTimeout = 30
 
 [env]
-  BACKEND_PORT = "3000"
+  PORT = "3000"
   NODE_ENV = "production"
