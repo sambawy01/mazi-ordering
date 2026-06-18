@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "MAZI",
+    "slug": "mazi-ordering",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/mazi_logo_clean.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/mazi_logo_clean.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8FCCF0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mazi.ordering"
+    },
+    "android": {
+      "package": "com.mazi.ordering"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/mazi_logo_clean.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "MAZI needs camera access to scan table QR codes."
+        }
+      ]
+    ]
+  }
+}

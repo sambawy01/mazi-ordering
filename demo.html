@@ -44,7 +44,7 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 .olive-div::before,.olive-div::after{content:'';flex:1;height:1px;background:var(--gold);opacity:.3}
 .olive-div .o{font-size:16px}
 /* Home */
-.hm{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#8FCCF0;color:#fff;padding:30px;position:relative;overflow:hidden}
+.hm{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;background:#8FCCF0;color:#fff;padding:40px 30px 30px;position:relative;overflow-y:auto}
 .hm > *{position:relative;z-index:1}
 .hm .lg{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:14px;border:3px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.2);overflow:hidden;background:rgba(255,255,255,.95)}
 .hm .lg img{width:100%;height:100%;object-fit:cover}
@@ -183,7 +183,7 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 <div class="notch"></div>
 <div class="sb"><span id="clk">9:41</span><span>📶 📡 🔋</span></div>
 <div class="greek-pattern" style="position:absolute;top:44px;left:0;right:0;z-index:60"></div>
-<div class="scr" style="top:50px">
+<div class="scr" style="top:52px">
 
 <!-- HOME -->
 <div class="s hm act" id="s-home">
@@ -235,12 +235,16 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 
 <!-- PHONE ENTRY -->
 <div class="s" id="s-phone">
-<div class="ab" style="background:var(--blue-bg)"><button class="bk" onclick="go('home')" style="background:rgba(0,0,0,.1);color:#0D47A1">‹</button><h1 style="color:#0D47A1">Welcome to MAZI</h1></div>
-<div class="ct" style="background:var(--blue-bg);display:flex;flex-direction:column;align-items:center;padding-top:40px">
-<img src="assets/mazi_logo_clean.png" style="width:100px;height:100px;object-fit:contain;margin-bottom:24px" alt="MAZI">
-<h2 style="font-family:var(--serif);font-size:24px;color:#0D47A1;margin-bottom:8px">Table 5 · Terrace</h2>
-<p style="font-size:14px;color:#0D47A1;opacity:.7;margin-bottom:32px;text-align:center">Enter your phone number to start your order.<br>We'll send you a confirmation code.</p>
-<div class="fld" style="width:100%;max-width:300px;margin-bottom:16px">
+<div class="ab" style="background:var(--blue-bg)"><button class="bk" onclick="go('home')" style="background:rgba(0,0,0,.1);color:#0D47A1">‹</button><h1 style="color:#0D47A1">Join Table 5</h1></div>
+<div class="ct" style="background:var(--blue-bg);display:flex;flex-direction:column;align-items:center;padding-top:30px">
+<img src="assets/mazi_logo_clean.png" style="width:80px;height:80px;object-fit:contain;margin-bottom:20px" alt="MAZI">
+<h2 style="font-family:var(--serif);font-size:22px;color:#0D47A1;margin-bottom:6px">Table 5 · Terrace</h2>
+<p style="font-size:13px;color:#0D47A1;opacity:.7;margin-bottom:24px;text-align:center" id="phoneIntro">Enter your details to join this table.</p>
+<div class="fld" style="width:100%;max-width:320px;margin-bottom:14px">
+<label style="color:#0D47A1;font-weight:600;font-size:13px;margin-bottom:6px;display:block">Name</label>
+<input id="guestName" placeholder="Your full name" style="width:100%;padding:14px 16px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-size:15px;font-family:inherit;background:#fff;color:#0D47A1" type="text">
+</div>
+<div class="fld" style="width:100%;max-width:320px;margin-bottom:16px">
 <label style="color:#0D47A1;font-weight:600;font-size:13px;margin-bottom:6px;display:block">Phone Number</label>
 <div style="display:flex;gap:8px">
 <select id="phoneCountry" style="padding:14px 8px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-size:15px;font-family:inherit;background:#fff;color:#0D47A1">
@@ -251,10 +255,14 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 <option>+966 🇸🇦</option>
 <option>+20 🇪🇬</option>
 </select>
-<input id="phoneInput" placeholder="694 123 4567" style="flex:1;padding:14px 16px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-size:15px;font-family:inherit;background:#fff;color:#0D47A1" type="tel" onkeypress="if(event.key==='Enter')sendOtp()">
+<input id="phoneInput" placeholder="694 123 4567" style="flex:1;padding:14px 16px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-size:15px;font-family:inherit;background:#fff;color:#0D47A1" type="tel">
 </div>
 </div>
-<button class="btn bp" style="max-width:300px;margin-bottom:12px" onclick="sendOtp()">Send Code</button>
+<div style="width:100%;max-width:320px;margin-bottom:16px;padding:14px;background:rgba(13,71,161,.08);border:1.5px solid rgba(13,71,161,.2);border-radius:var(--rs);display:flex;gap:10px;align-items:flex-start">
+<input type="checkbox" id="disclaimerCheck" style="margin-top:3px;width:18px;height:18px;accent-color:#0D47A1;flex-shrink:0">
+<label for="disclaimerCheck" style="font-size:12px;color:#0D47A1;line-height:1.5;cursor:pointer">I confirm that I am personally responsible for all orders placed through my device or any guest devices I invite to this table. I understand that all charges will be billed to my phone number.</label>
+</div>
+<button class="btn bp" style="max-width:320px;margin-bottom:12px" onclick="sendOtp()" id="phoneSubmitBtn">Send Verification Code</button>
 <p id="phoneError" style="color:var(--red);font-size:13px;margin-top:8px;display:none"></p>
 </div>
 </div>
@@ -267,7 +275,7 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 <h2 style="font-family:var(--serif);font-size:22px;color:#0D47A1;margin-bottom:8px">Enter the code</h2>
 <p id="otpPhoneDisplay" style="font-size:14px;color:#0D47A1;opacity:.7;margin-bottom:32px;text-align:center">We sent a code to your phone</p>
 <div class="fld" style="width:100%;max-width:280px;margin-bottom:20px">
-<input id="otpInput" placeholder="• • • •" maxlength="4" style="text-align:center;letter-spacing:16px;font-size:28px;font-weight:700;padding:14px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-family:inherit;background:#fff;color:#0D47A1" onkeypress="if(event.key==='Enter')verifyOtp()">
+<input id="otpInput" placeholder="• • • •" maxlength="4" style="text-align:center;letter-spacing:16px;font-size:28px;font-weight:700;padding:14px;border:1.5px solid #B0D0E8;border-radius:var(--rs);font-family:inherit;background:#fff;color:#0D47A1">
 </div>
 <button class="btn bp" style="max-width:280px;margin-bottom:12px" onclick="verifyOtp()">Confirm</button>
 <button class="btn bo" style="max-width:280px;border-color:#B0D0E8;color:#0D47A1" onclick="sendOtp()">Resend Code</button>
@@ -276,15 +284,79 @@ html,body{height:100%;font-family:var(--sans);background:linear-gradient(135deg,
 </div>
 </div>
 
+<!-- WAITING FOR HOST APPROVAL -->
+<div class="s" id="s-waiting">
+<div class="ct" style="background:var(--blue-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:30px;text-align:center">
+<div style="width:100px;height:100px;border-radius:50%;border:4px solid #B0D0E8;border-top-color:var(--pri);animation:spin 1s linear infinite;margin-bottom:30px"></div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<h2 style="font-family:var(--serif);font-size:22px;color:#0D47A1;margin-bottom:8px" id="waitingTitle">Waiting for Host</h2>
+<p style="font-size:14px;color:#0D47A1;opacity:.7;max-width:280px;line-height:1.5;margin-bottom:24px" id="waitingMsg">The bill owner has been notified. You'll be able to order once they approve your device.</p>
+<div id="hostApprovalInfo" style="background:rgba(13,71,161,.08);border-radius:16px;padding:16px;width:100%;max-width:300px;margin-bottom:20px;text-align:left">
+<p style="font-size:12px;color:#0D47A1;opacity:.5;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Your Request</p>
+<p style="font-size:15px;color:#0D47A1;font-weight:600" id="waitingGuestName">Guest Name</p>
+<p style="font-size:13px;color:#0D47A1;opacity:.7" id="waitingGuestPhone">+30 694 123 4567</p>
+</div>
+<button class="btn bo" style="max-width:280px;border-color:#B0D0E8;color:#0D47A1" onclick="go('home')">Cancel Request</button>
+</div>
+</div>
+
+<!-- HOST APPROVAL NOTIFICATIONS (shown on bill owner's device) -->
+<div class="s" id="s-approvals">
+<div class="ab"><button class="bk" onclick="go('cm')">‹</button><h1>Device Requests</h1></div>
+<div class="ct" id="approvalsCt"></div>
+</div>
+
 <!-- CLIENT MENU -->
 <div class="s" id="s-cm">
 <div class="ab"><button class="bk" onclick="go('qr')">‹</button><h1>Table 5 · Terrace</h1><button class="ac cb" onclick="go('cart')">🛒<span class="cnt" id="cb1" style="display:none">0</span></button></div>
 <div class="ct">
-<div class="rb2"><div class="ic">📅</div><div class="tx"><div class="t">Reservation Confirmed</div><div class="s2">Table 5 · Terrace · 8:00 PM · 4 guests</div></div><div style="font-size:20px">✓</div></div>
-<div class="qa"><button class="q" onclick="go('menu')"><span class="ic">📋</span><span class="lb">Browse Menu</span></button><button class="q" onclick="callWaiter()"><span class="ic">🔔</span><span class="lb">Call Waiter</span></button></div>
+<div class="rb2" style="background:linear-gradient(135deg,#0D47A1,#002171)"><div class="ic">👤</div><div class="tx"><div class="t" id="billOwnerLabel">Bill Owner</div><div class="s2" id="billOwnerPhone">+30 694 123 4567</div></div><div style="font-size:12px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:12px">🔒 Locked</div></div>
+<div class="qa">
+<button class="q" onclick="go('menu')"><span class="ic">📋</span><span class="lb">Browse Menu</span></button>
+<button class="q" onclick="go('approvals')" id="approvalsBtn"><span class="ic">👥</span><span class="lb">Device Requests <span id="pendingBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;margin-left:2px">0</span></span></button>
+<button class="q" onclick="callWaiter()"><span class="ic">🔔</span><span class="lb">Call Waiter</span></button>
+</div>
 <div class="greek-pattern"></div>
 <div class="pt">🫒 Popular Meze</div>
 <div class="pg" id="popGrid"></div>
+</div>
+</div>
+
+<!-- SHARE WITH GUESTS -->
+<div class="s" id="s-share">
+<div class="ab"><button class="bk" onclick="go('cm')">‹</button><h1>Share with Guests</h1></div>
+<div class="ct">
+<div class="card" style="text-align:center;padding:24px">
+<div style="font-size:48px;margin-bottom:12px">👥</div>
+<h3 style="font-family:var(--serif);font-size:20px;margin-bottom:8px">Invite Your Guests</h3>
+<p style="font-size:14px;color:var(--osv);line-height:1.5;margin-bottom:20px">Share this code with guests at your table so they can order from their own phones. All orders go to the same bill, locked to your number.</p>
+<div id="shareCodeDisplay" style="background:var(--blue-bg);border-radius:16px;padding:24px;margin-bottom:20px">
+<p style="font-size:12px;color:#0D47A1;opacity:.6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Table Access Code</p>
+<p style="font-size:36px;font-weight:800;letter-spacing:12px;color:#0D47A1;text-align:center" id="shareCode">MAZI-5</p>
+</div>
+<div id="shareQrPlaceholder" style="background:var(--sv);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center">
+<p style="font-size:12px;color:var(--osv);margin-bottom:12px">Guests scan this QR or visit:</p>
+<div style="background:#fff;border-radius:12px;padding:16px;margin:0 auto;width:200px">
+<div style="width:168px;height:168px;margin:0 auto;background:#fff;display:flex;align-items:center;justify-content:center;border:2px dashed #B0D0E8;border-radius:12px;font-size:48px">📱</div>
+</div>
+<p style="font-size:13px;color:#0D47A1;font-weight:600;margin-top:12px" id="shareUrl">mazi.app/t/MAZI-5</p>
+</div>
+<button class="btn bp" style="margin-bottom:10px" onclick="copyShareCode()">Copy Access Code</button>
+<button class="btn bs" onclick="toast('Link shared!')">Share Link</button>
+</div>
+<div class="card">
+<div style="font-size:15px;font-weight:700;margin-bottom:12px">Active Guests on This Bill</div>
+<div id="guestList" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+<div class="card" style="background:#FFF3E0;border:1px solid #FFCC80">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="font-size:24px">🔒</div>
+<div style="font-size:13px;color:#5D4037;line-height:1.4">
+<b>Bill is locked to <span id="lockPhoneLabel">+30 694 123 4567</span></b><br>
+Only you can request the check. All guest orders appear on your bill.
+</div>
+</div>
+</div>
 </div>
 </div>
 
@@ -355,7 +427,7 @@ const products=[
 ];
 const statuses=[{lb:'Order Placed',ic:'📝'},{lb:'Sent to Kitchen',ic:'📤'},{lb:'Preparing',ic:'👨‍🍳'},{lb:'Ready to Serve',ic:'✅'},{lb:'Served',ic:'🍽️'}];
 let cart=[],curQty=1,curProd=null,curCat='Meze',waiter='Nikos',ordProg=0,ordInt=null;
-const sm={home:'s-home',login:'s-login',tables:'s-tables',td:'s-td',qr:'s-qr',phone:'s-phone',otp:'s-otp',cm:'s-cm',menu:'s-menu',cart:'s-cart',os:'s-os'};
+const sm={home:'s-home',login:'s-login',tables:'s-tables',td:'s-td',qr:'s-qr',phone:'s-phone',otp:'s-otp',waiting:'s-waiting',cm:'s-cm',share:'s-share',approvals:'s-approvals',menu:'s-menu',cart:'s-cart',os:'s-os'};
 
 function go(n){Object.values(sm).forEach(id=>document.getElementById(id).classList.remove('act'));document.getElementById(sm[n]).classList.add('act');document.getElementById(sm[n]).scrollTop=0;if(n==='tables')renderTables();if(n==='cart')renderCart();if(n==='menu')renderMenu();if(n==='cm')renderPop()}
 function doLogin(){const a=document.getElementById('homePosId')?document.getElementById('homePosId').value.trim():'';const p=document.getElementById('homePin')?document.getElementById('homePin').value.trim():'';if(a&&p){go('tables');toast('Welcome, '+waiter+'!')}else if(!a){toast('Please enter your ID')}else{toast('Please enter your PIN')}}
@@ -365,9 +437,19 @@ function openTable(id){const t=tables.find(x=>x.id===id);const c=document.getEle
 function createOrder(id){const t=tables.find(x=>x.id===id);t.st='occupied';t.ord={id:'O-'+Math.floor(2000+Math.random()*9000),items:0,total:0};toast('Order created for Table '+t.n);openTable(id)}
 function markFree(id){const t=tables.find(x=>x.id===id);t.st='free';t.ord=null;toast('Table '+t.n+' marked as free');go('tables')}
 function simulateScan(){toast('QR scanned! Table 5 · Terrace');setTimeout(()=>go('phone'),600)}
-let guestPhone='';
-function sendOtp(){const c=document.getElementById('phoneCountry');const cc=c?c.options[c.selectedIndex].text.split(' ')[0]:'+30';const n=document.getElementById('phoneInput')?document.getElementById('phoneInput').value.trim():'';if(!n||n.length<5){const e=document.getElementById('phoneError');if(e){e.textContent='Please enter a valid phone number';e.style.display='block'}toast('Please enter your phone number');return}const e=document.getElementById('phoneError');if(e)e.style.display='none';guestPhone=cc+' '+n;const d=document.getElementById('otpPhoneDisplay');if(d)d.textContent='We sent a code to '+guestPhone;toast('Code sent to '+guestPhone);go('otp');setTimeout(()=>{const i=document.getElementById('otpInput');if(i)i.focus()},300)}
-function verifyOtp(){const code=document.getElementById('otpInput')?document.getElementById('otpInput').value.trim():'';if(!code||code.length<4){const e=document.getElementById('otpError');if(e){e.textContent='Please enter the 4-digit code';e.style.display='block'}toast('Please enter the code');return}const e=document.getElementById('otpError');if(e)e.style.display='none';toast('Phone confirmed! Welcome to MAZI');go('cm')}
+let guestPhone='';let guestName='';
+function sendOtp(){const nameEl=document.getElementById('guestName');const nm=nameEl?nameEl.value.trim():'';const c=document.getElementById('phoneCountry');const cc=c?c.options[c.selectedIndex].text.split(' ')[0]:'+30';const n=document.getElementById('phoneInput')?document.getElementById('phoneInput').value.trim():'';const disc=document.getElementById('disclaimerCheck');const checked=disc?disc.checked:false;const e=document.getElementById('phoneError');if(!nm){if(e){e.textContent='Please enter your name';e.style.display='block'}toast('Please enter your name');return}if(!n||n.length<5){if(e){e.textContent='Please enter a valid phone number';e.style.display='block'}toast('Please enter your phone number');return}if(!checked){if(e){e.textContent='Please accept the responsibility agreement to continue';e.style.display='block'}toast('Please check the agreement box');return}if(e)e.style.display='none';guestName=nm;guestPhone=cc+' '+n;const d=document.getElementById('otpPhoneDisplay');if(d)d.textContent='We sent a code to '+guestPhone;toast('Code sent to '+guestPhone);go('otp');setTimeout(()=>{const i=document.getElementById('otpInput');if(i)i.focus()},300)}
+function verifyOtp(){const code=document.getElementById('otpInput')?document.getElementById('otpInput').value.trim():'';if(!code||code.length<4){const e=document.getElementById('otpError');if(e){e.textContent='Please enter the 4-digit code';e.style.display='block'}toast('Please enter the code');return}const e=document.getElementById('otpError');if(e)e.style.display='none';if(!isHostSet){setBillOwner(guestName,guestPhone);toast('Welcome, '+guestName+'! You\'re the bill owner.');go('cm')}else{requestApproval(guestName,guestPhone);toast('Approval request sent to '+billOwnerName);go('waiting')}}
+let isHostSet=false;let billOwnerName='';let billOwnerPhone='';let tableGuests=[];let pendingRequests=[];let approvedGuests=[];
+function setBillOwner(name,phone){isHostSet=true;billOwnerName=name;billOwnerPhone=phone;tableGuests=[{name:name+' (You)',phone:phone,role:'owner'}];const bl=document.getElementById('billOwnerPhone');if(bl)bl.textContent=name+' · '+phone;const bp=document.getElementById('lockPhoneLabel');if(bp)bp.textContent=name+' · '+phone;const bol=document.getElementById('billOwnerLabel');if(bol)bol.textContent=name}
+function requestApproval(name,phone){pendingRequests.push({id:Date.now(),name,phone,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});const wn=document.getElementById('waitingGuestName');if(wn)wn.textContent=name;const wp=document.getElementById('waitingGuestPhone');if(wp)wp.textContent=phone;updPendingBadge();setTimeout(()=>{if(pendingRequests.length>0){approveGuest(pendingRequests[pendingRequests.length-1].id);const w=document.getElementById('waitingMsg');if(w){w.textContent='You\\'re approved! Taking you to the menu...';w.style.color='var(--grn)}setTimeout(()=>go('cm'),1500)}},5000)}
+function updPendingBadge(){const b=document.getElementById('pendingBadge');if(b){if(pendingRequests.length>0){b.textContent=pendingRequests.length;b.style.display='inline'}else b.style.display='none'}}
+function renderApprovals(){const c=document.getElementById('approvalsCt');if(!c)return;if(pendingRequests.length===0){c.innerHTML='<div class="ce"><div class="em" style="font-size:48px">✅</div><h3 style="font-size:18px;margin-bottom:8px;font-family:var(--serif)">No pending requests</h3><p style="font-size:14px">When guests scan the table QR and verify their phone, their requests will appear here.</p></div>';return}c.innerHTML=pendingRequests.map(r=>'<div class="card" style="display:flex;align-items:center;gap:14px"><div style="width:48px;height:48px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">'+r.name.charAt(0)+'</div><div style="flex:1"><div style="font-size:15px;font-weight:600">'+r.name+'</div><div style="font-size:13px;color:var(--osv)">'+r.phone+' · '+r.time+'</div><div style="font-size:11px;color:var(--goldD);margin-top:4px">⏳ Waiting for your approval</div></div><div style="display:flex;gap:8px"><button onclick="approveGuest('+r.id+')" style="background:var(--grn);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">✓ Approve</button><button onclick="denyGuest('+r.id+')" style="background:var(--red);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">✕ Deny</button></div></div>').join('')}
+function approveGuest(id){const req=pendingRequests.find(r=>r.id===id);if(req){approvedGuests.push(req);tableGuests.push({name:req.name,phone:req.phone,role:'guest'});pendingRequests=pendingRequests.filter(r=>r.id!==id);toast(req.name+' approved! They can now order.');renderApprovals()}}
+function denyGuest(id){const req=pendingRequests.find(r=>r.id===id);if(req){pendingRequests=pendingRequests.filter(r=>r.id!==id);toast(req.name+' denied.');renderApprovals()}}
+function copyShareCode(){const code=document.getElementById('shareCode')?document.getElementById('shareCode').textContent:'';if(navigator.clipboard){navigator.clipboard.writeText(code).then(()=>toast('Code copied: '+code)).catch(()=>toast('Code: '+code))}else{toast('Code: '+code)}}
+function renderGuests(){const gl=document.getElementById('guestList');if(!gl)return;gl.innerHTML=tableGuests.map(g=>'<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--sv);border-radius:10px"><div style="width:36px;height:36px;border-radius:50%;background:'+(g.role==='owner'?'var(--pri)':'var(--gold)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">'+(g.role==='owner'?'👑':g.name.charAt(0))+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600">'+g.name+'</div><div style="font-size:12px;color:var(--osv)">'+g.phone+'</div></div>'+(g.role==='owner'?'<span style="font-size:11px;background:var(--priL);color:var(--priD);padding:3px 8px;border-radius:10px">Owner</span>':'<span style="font-size:11px;background:var(--goldL);color:var(--goldD);padding:3px 8px;border-radius:10px">Guest</span>')+'</div>').join('')}
+function go(n){Object.values(sm).forEach(id=>document.getElementById(id).classList.remove('act'));document.getElementById(sm[n]).classList.add('act');document.getElementById(sm[n]).scrollTop=0;if(n==='tables')renderTables();if(n==='cart')renderCart();if(n==='menu')renderMenu();if(n==='cm')renderPop();if(n==='share')renderGuests();if(n==='approvals')renderApprovals()}
 function renderPop(){document.getElementById('popGrid').innerHTML=products.filter(p=>p.pop).slice(0,4).map(p=>'<div class="pc" onclick="openSheet('+p.id+')"><div class="im">'+p.em+'</div><div class="if"><div class="nm">'+p.nm+'</div><div class="pr">'+p.pr+' EUR</div></div></div>').join('')}
 function renderMenu(){const cats=['Meze','Main Course','Desserts','Beverages'];document.getElementById('catTabs').innerHTML=cats.map(c=>'<button class="tab '+(c===curCat?'act':'')+'" onclick="setCat(\''+c+'\')">'+c+'</button>').join('');document.getElementById('menuGrid').innerHTML=products.filter(p=>p.cat===curCat).map(p=>'<div class="mc" onclick="openSheet('+p.id+')"><div class="im">'+p.em+'</div><div class="if"><div class="nm">'+p.nm+'</div><div class="ds">'+p.ds+'</div><div class="pr">'+p.pr+' EUR</div></div></div>').join('');updBadges()}
 function setCat(c){curCat=c;renderMenu()}
@@ -380,7 +462,7 @@ function renderCart(){const c=document.getElementById('cartCt');if(cart.length==
 function cQty(id,d){const it=cart.find(x=>x.id===id);if(!it)return;it.qty+=d;if(it.qty<=0)cart=cart.filter(x=>x.id!==id);updBadges();renderCart()}
 function submitOrder(){if(cart.length===0)return;cart=[];updBadges();ordProg=0;go('os');startProg();toast('Order submitted to kitchen!')}
 function startProg(){ordProg=0;if(ordInt)clearInterval(ordInt);renderOS();ordInt=setInterval(()=>{if(ordProg<5){ordProg++;renderOS()}else clearInterval(ordInt)},3000)}
-function renderOS(){let st='';statuses.forEach((s,i)=>{const done=i<ordProg,act=i===ordProg,cls=done?'done':act?'act':'pend';st+='<div class="tl st '+cls+'"><div class="dt">'+(done?'✓':s.ic)+'</div><div class="co"><div class="tt">'+s.lb+'</div><div class="tm">'+(done||act?new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—')+'</div></div></div>'});document.getElementById('osCt').innerHTML='<div class="oic"><div class="oid">Order #O-2015</div><div class="ot">Table 5 · Terrace</div><div class="oi">4 items · 112 EUR</div></div><div style="font-size:15px;font-weight:700;padding:0 4px;margin-bottom:14px;font-family:var(--serif);font-size:18px">Order Progress</div><div class="tl"><div class="ln"></div>'+st+'</div><button class="btn bp" onclick="toast(\'Check requested! Your waiter will bring the bill.\')">💳 Request Bill</button><button class="btn bo" style="margin-top:10px" onclick="go(\'cm\')">Back to Menu</button>'}
+function renderOS(){let st='';statuses.forEach((s,i)=>{const done=i<ordProg,act=i===ordProg,cls=done?'done':act?'act':'pend';st+='<div class="tl st '+cls+'"><div class="dt">'+(done?'✓':s.ic)+'</div><div class="co"><div class="tt">'+s.lb+'</div><div class="tm">'+(done||act?new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—')+'</div></div></div>'});document.getElementById('osCt').innerHTML='<div class="oic"><div class="oid">Order #O-2015</div><div class="ot">Table 5 · Terrace</div><div class="oi">4 items · 112 EUR</div><div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.2);font-size:12px;opacity:.8">🔒 Bill locked to '+billOwnerPhone+'</div></div><div style="font-size:15px;font-weight:700;padding:0 4px;margin-bottom:14px;font-family:var(--serif);font-size:18px">Order Progress</div><div class="tl"><div class="ln"></div>'+st+'</div><button class="btn bp" onclick="toast(\'Check requested! Your waiter will bring the bill.\')">💳 Request Bill</button><button class="btn bo" style="margin-top:10px" onclick="go(\'cm\')">Back to Menu</button>'}
 function callWaiter(){toast('Your waiter has been notified!')}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
 function updClk(){document.getElementById('clk').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
