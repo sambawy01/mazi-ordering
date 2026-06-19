@@ -157,15 +157,15 @@ export default function ClientMenuScreen({ navigation }: Props) {
                   Alert.alert('No table', 'Table information is missing.');
                   return;
                 }
-                navigation.navigate('SplitBill', { tableId: qrPayload.table_id });
+                navigation.navigate('SettleBill', { tableId: qrPayload.table_id });
               }}
               activeOpacity={0.85}
             >
               <Text style={styles.billIcon}>🧾</Text>
               <View style={styles.billTextWrap}>
-                <Text style={styles.billTitle}>View & Split Bill</Text>
+                <Text style={styles.billTitle}>View & Settle Bill</Text>
                 <Text style={styles.billSub}>
-                  Even split across {payerCount} {payerCount === 1 ? 'person' : 'people'}
+                  Pay in full or split across {payerCount} {payerCount === 1 ? 'person' : 'people'}
                 </Text>
               </View>
               <Text style={styles.billChevron}>›</Text>

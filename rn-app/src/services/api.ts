@@ -220,6 +220,15 @@ export async function settlePayment(data: {
   return res.data as { order: Order; bill: Bill };
 }
 
+// Settle the full table balance in one go (host "one tap"). Returns the settled table bill.
+export async function settleTable(data: {
+  tableId: string;
+  method?: PaymobMethod | 'cash';
+}) {
+  const res = await api.post('/payment/settle-table', data);
+  return { bill: res.data.bill as TableBill, demo: res.data.demo === true, settled: res.data.settled === true };
+}
+
 // --- Webhooks (for testing) ---
 export async function getWebhookEvents() {
   const res = await api.get('/webhooks/events');

@@ -24,6 +24,7 @@ import StaffTableDetailScreen from './src/screens/StaffTableDetailScreen';
 import ApprovalsScreen from './src/screens/ApprovalsScreen';
 import BillScreen from './src/screens/BillScreen';
 import SplitBillScreen from './src/screens/SplitBillScreen';
+import SettleBillScreen from './src/screens/SettleBillScreen';
 import GuestBillScreen from './src/screens/GuestBillScreen';
 import PaymentProcessingScreen from './src/screens/PaymentProcessingScreen';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
@@ -48,6 +49,7 @@ export type RootStackParamList = {
   Approvals: undefined;
   Bill: { orderId: string; tableId?: string; isHost?: boolean; guestShare?: number };
   SplitBill: { tableId: string };
+  SettleBill: { tableId: string };
   GuestBill: { tableId: string; orderId: string; guestName: string; payerCount: number };
   PaymentProcessing: { orderId: string; iframeUrl: string; method: 'card' | 'instapay' | 'apple_pay' };
   PaymentResult: { orderId: string; success: boolean; method?: 'card' | 'instapay' | 'apple_pay' | 'cash' };
@@ -110,6 +112,7 @@ function AppStack() {
       {/* Payment flow */}
       <Stack.Screen name="Bill" component={BillScreen} options={{ title: 'Bill & Payment' }} />
       <Stack.Screen name="SplitBill" component={SplitBillScreen} options={{ title: 'Split Bill' }} />
+      <Stack.Screen name="SettleBill" component={SettleBillScreen} options={{ title: 'Settle Bill' }} />
       <Stack.Screen name="GuestBill" component={GuestBillScreen} options={{ title: 'Your Share' }} />
       <Stack.Screen name="PaymentProcessing" component={PaymentProcessingScreen} options={{ title: 'Secure Payment' }} />
       <Stack.Screen name="PaymentResult" component={PaymentResultScreen} options={{ headerShown: false }} />

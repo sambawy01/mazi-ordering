@@ -67,7 +67,7 @@ export default function OrderStatusScreen({ navigation, route }: Props) {
       return;
     }
     if (isHost) {
-      navigation.navigate('SplitBill', { tableId: qrPayload.table_id });
+      navigation.navigate('SettleBill', { tableId: qrPayload.table_id });
     } else if (myOrderId) {
       navigation.navigate('GuestBill', {
         tableId: qrPayload.table_id,
@@ -166,7 +166,7 @@ export default function OrderStatusScreen({ navigation, route }: Props) {
         activeOpacity={0.85}
       >
         <Text style={styles.billBtnText}>
-          {isHost ? 'View & Split the Bill' : 'View & Pay My Share'}
+          {isHost ? 'View & Settle the Bill' : 'View & Pay My Share'}
         </Text>
       </TouchableOpacity>
 

@@ -437,6 +437,95 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  // POST /payment/settle-table — settle the full table balance in one go (host "one tap").
+  // Distributes the payment across the table's orders. In demo mode (no Foodics), returns
+  // a mocked settled bill so the UI can confirm the flow end-to-end.
+  app.post('/payment/settle-table', async (request, reply) => {
+    const body = (request.body ?? {}) as {
+      tableId?: string;
+      method?: 'card' | 'instapay' | 'apple_pay' | 'cash';
+      paymentMethodId?: string;
+    };
+    const { tableId, method } = body;
+    if (!tableId) return reply.code(400).send({ error: 'tableId is required' });
+
+    try {
+      const client = getFoodicsClient();
+
+      // --- DEMO MODE: no Foodics ---
+      if (!client.hasToken()) {
+        const demoBill = buildDemoTableBill(tableId);
+        // mark as fully paid
+        const settled = { ...demoBill, amount_paid: demoBill.total, balance_due: 0, is_paid: true };
+        return reply.send({ bill: settled, demo: true, settled: true });
+      }
+
+      const cached = getCachedOrdersByTable(tableId);
+      if (cached.length === 0) {
+        return reply.code(404).send({ error: 'No orders found for this table yet' });
+      }
+
+      // Resolve payment method id
+      let paymentMethodId = body.paymentMethodId;
+      if (!paymentMethodId) {
+        const methods = (await client.listPaymentMethods()) as FoodicsPaymentMethod[];
+        paymentMethodId = resolveFoodicsMethodId(methods, method ?? 'cash') ?? undefined;
+      }
+      if (!paymentMethodId) {
+        return reply.code(400).send({ error: 'Could not resolve a Foodics payment method' });
+      }
+
+      // Settle each order's remaining balance against Foodics.
+      const updatedBills: any[] = [];
+      for (const row of cached) {
+        const orderId = row.order_id;
+        try {
+          const order = await client.getOrder(orderId);
+          const b = buildBill(order as Record<string, any>);
+          if (b.balance_due > 0) {
+            await settleInFoodics({
+              orderId,
+              paymentMethodId,
+              amount: b.balance_due,
+              meta: { source: 'mazi_app', method: method ?? 'cash', table_settle: true },
+            });
+          }
+          updatedBills.push(b);
+        } catch (err) {
+          console.error(`[Payment] settle-table: order ${orderId} failed:`, err instanceof Error ? err.message : err);
+        }
+      }
+
+      // Recompute aggregated bill
+      const total = updatedBills.reduce((s: number, b: any) => s + b.total, 0);
+      const amountPaid = total; // fully settled
+      const balanceDue = 0;
+      const aggregated = {
+        table_id: tableId,
+        order_ids: cached.map((r: any) => r.order_id),
+        currency: (updatedBills[0]?.currency) || config.app.currency,
+        items: updatedBills.flatMap((b: any) => b.items.map((it: any) => ({ ...it, order_id: b.order_id }))),
+        subtotal: Number(updatedBills.reduce((s: number, b: any) => s + b.subtotal, 0).toFixed(2)),
+        taxes: Number(updatedBills.reduce((s: number, b: any) => s + b.taxes, 0).toFixed(2)),
+        charges: Number(updatedBills.reduce((s: number, b: any) => s + b.charges, 0).toFixed(2)),
+        discount: Number(updatedBills.reduce((s: number, b: any) => s + b.discount, 0).toFixed(2)),
+        total: Number(total.toFixed(2)),
+        amount_paid: Number(amountPaid.toFixed(2)),
+        balance_due: Number(balanceDue.toFixed(2)),
+        is_paid: true,
+        per_order: updatedBills.map((b: any) => ({
+          order_id: b.order_id, reference: b.reference, subtotal: b.subtotal,
+          total: b.total, amount_paid: b.total, balance_due: 0, is_paid: true,
+        })),
+      };
+      return reply.send({ bill: aggregated, demo: false, settled: true });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to settle table';
+      console.error('[Payment] settle-table error:', msg);
+      return reply.code(400).send({ error: msg });
+    }
+  });
+
   // POST /payment/webhook — Paymob payment confirmation
   app.post('/payment/webhook', async (request, reply) => {
     const body = (request.body ?? {}) as { type?: string; obj?: Record<string, any> };
