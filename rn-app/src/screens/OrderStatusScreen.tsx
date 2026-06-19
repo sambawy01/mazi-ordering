@@ -121,7 +121,7 @@ export default function OrderStatusScreen({ navigation, route }: Props) {
               <View key={i} style={styles.productRow}>
                 <Text style={styles.productQty}>{p.quantity}x</Text>
                 <Text style={styles.productName} numberOfLines={1}>{p.name}</Text>
-                <Text style={styles.productPrice}>EUR {(p.total_price ?? (p.unit_price ?? 0) * p.quantity).toFixed(2)}</Text>
+                <Text style={styles.productPrice}>EGP {(p.total_price ?? (p.unit_price ?? 0) * p.quantity).toFixed(2)}</Text>
               </View>
             ))}
           </View>
@@ -130,7 +130,7 @@ export default function OrderStatusScreen({ navigation, route }: Props) {
         {order.total != null && (
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>EUR {order.total.toFixed(2)}</Text>
+            <Text style={styles.totalValue}>EGP {order.total.toFixed(2)}</Text>
           </View>
         )}
       </View>

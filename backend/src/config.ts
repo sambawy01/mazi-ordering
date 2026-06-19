@@ -22,7 +22,7 @@ export const config = {
   },
   app: {
     name: process.env.APP_NAME || 'Foodics Ordering',
-    currency: process.env.DEFAULT_CURRENCY || 'SAR',
+    currency: process.env.DEFAULT_CURRENCY || 'EGP',
   },
   paymob: {
     // Base URL for the Paymob Accept API (Egypt region by default).

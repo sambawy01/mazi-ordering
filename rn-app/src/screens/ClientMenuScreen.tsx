@@ -83,7 +83,7 @@ export default function ClientMenuScreen({ navigation }: Props) {
         )}
       </View>
       <Text style={styles.popularName} numberOfLines={2}>{item.name}</Text>
-      <Text style={styles.popularPrice}>€{item.price.toFixed(2)}</Text>
+      <Text style={styles.popularPrice}>EGP {item.price.toFixed(2)}</Text>
     </TouchableOpacity>
   );
 

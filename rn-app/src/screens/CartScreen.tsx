@@ -82,7 +82,7 @@ export default function CartScreen({ navigation }: Props) {
                 {c.kitchenNotes ? (
                   <Text style={styles.itemNotes}>Notes: {c.kitchenNotes}</Text>
                 ) : null}
-                <Text style={styles.itemPrice}>€{c.product.price.toFixed(2)} each</Text>
+                <Text style={styles.itemPrice}>EGP {c.product.price.toFixed(2)} each</Text>
               </View>
               <View style={styles.itemControls}>
                 <View style={styles.qtyRow}>
@@ -104,7 +104,7 @@ export default function CartScreen({ navigation }: Props) {
                   <Text style={styles.removeText}>Remove</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.itemTotal}>€{(c.product.price * c.quantity).toFixed(2)}</Text>
+              <Text style={styles.itemTotal}>EGP {(c.product.price * c.quantity).toFixed(2)}</Text>
             </View>
           ))
         )}
@@ -114,15 +114,15 @@ export default function CartScreen({ navigation }: Props) {
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>€{subtotal.toFixed(2)}</Text>
+            <Text style={styles.summaryValue}>EGP {subtotal.toFixed(2)}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>VAT (10%)</Text>
-            <Text style={styles.summaryValue}>€{vat.toFixed(2)}</Text>
+            <Text style={styles.summaryValue}>EGP {vat.toFixed(2)}</Text>
           </View>
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>€{total.toFixed(2)}</Text>
+            <Text style={styles.totalValue}>EGP {total.toFixed(2)}</Text>
           </View>
           <TouchableOpacity
             style={[styles.submitBtn, submitting && styles.submitDisabled]}

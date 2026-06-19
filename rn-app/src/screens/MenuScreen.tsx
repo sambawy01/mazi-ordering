@@ -88,7 +88,7 @@ export default function MenuScreen({ navigation }: Props) {
         {item.description ? (
           <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
         ) : null}
-        <Text style={styles.cardPrice}>€{item.price.toFixed(2)}</Text>
+        <Text style={styles.cardPrice}>EGP {item.price.toFixed(2)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -168,7 +168,7 @@ export default function MenuScreen({ navigation }: Props) {
                   {selected.description ? (
                     <Text style={styles.sheetDesc}>{selected.description}</Text>
                   ) : null}
-                  <Text style={styles.sheetPrice}>€{selected.price.toFixed(2)}</Text>
+                  <Text style={styles.sheetPrice}>EGP {selected.price.toFixed(2)}</Text>
 
                   <Text style={styles.fieldLabel}>Notes for the kitchen (optional)</Text>
                   <TextInput
@@ -201,7 +201,7 @@ export default function MenuScreen({ navigation }: Props) {
 
                   <TouchableOpacity style={styles.addBtn} onPress={confirmAdd} activeOpacity={0.85}>
                     <Text style={styles.addBtnText}>
-                      Add {qty} to cart · €{(selected.price * qty).toFixed(2)}
+                      Add {qty} to cart · EGP {(selected.price * qty).toFixed(2)}
                     </Text>
                   </TouchableOpacity>
                 </ScrollView>
