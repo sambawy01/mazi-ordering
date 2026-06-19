@@ -188,7 +188,7 @@ export interface TableBill extends Bill {
 
 export async function getTableBill(tableId: string) {
   const res = await api.get(`/payment/bill/by-table/${encodeURIComponent(tableId)}`);
-  return res.data.bill as TableBill;
+  return { bill: res.data.bill as TableBill, demo: res.data.demo === true };
 }
 
 export async function createPaymentIntent(data: {

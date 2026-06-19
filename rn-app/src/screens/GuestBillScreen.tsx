@@ -33,6 +33,7 @@ const METHODS: PayMethod[] = [
 export default function GuestBillScreen({ route, navigation }: Props) {
   const { tableId, orderId, guestName, payerCount } = route.params;
   const [bill, setBill] = useState<TableBill | null>(null);
+  const [demo, setDemo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -41,8 +42,9 @@ export default function GuestBillScreen({ route, navigation }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const b = await getTableBill(tableId);
+      const { bill: b, demo: isDemo } = await getTableBill(tableId);
       setBill(b);
+      setDemo(isDemo);
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.message || 'Could not load the bill.');
     } finally {
@@ -129,6 +131,14 @@ export default function GuestBillScreen({ route, navigation }: Props) {
       <Text style={styles.heading}>Your Share</Text>
       <Text style={styles.subtitle}>{guestName} · Table bill split</Text>
 
+      {demo && (
+        <View style={styles.demoBanner}>
+          <Text style={styles.demoBannerText}>
+            DEMO BILL — sample data. Real share appears once Foodics is connected.
+          </Text>
+        </View>
+      )}
+
       <View style={styles.shareCard}>
         <Text style={styles.shareLabel}>You owe</Text>
         <Text style={styles.shareValue}>{fmt(myShare)}</Text>
@@ -185,6 +195,11 @@ const styles = StyleSheet.create({
   retryBtnText: { color: COLORS.white, fontWeight: '700' },
   heading: { fontFamily: FONTS.serif, fontSize: 30, fontWeight: '800', color: COLORS.text },
   subtitle: { color: COLORS.textVariant, fontSize: 14, marginTop: 2, marginBottom: SPACING.md },
+  demoBanner: {
+    backgroundColor: COLORS.goldLight, borderRadius: RADIUS.md, paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md, marginBottom: SPACING.sm, borderWidth: 1, borderColor: COLORS.gold,
+  },
+  demoBannerText: { color: COLORS.goldDark, fontSize: 12, fontWeight: '700', textAlign: 'center' },
   shareCard: {
     backgroundColor: COLORS.goldLight, borderRadius: RADIUS.lg, padding: SPACING.xl,
     alignItems: 'center', marginTop: SPACING.md,

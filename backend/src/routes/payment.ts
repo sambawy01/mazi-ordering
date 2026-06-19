@@ -105,6 +105,47 @@ function buildBill(order: Record<string, any>) {
 }
 
 /**
+ * Build a sample aggregated table bill for demo/preview purposes.
+ * Used only when Foodics is not connected (or no orders cached yet) so the
+ * split-bill UI can be exercised. The `demo: true` response flag lets the app
+ * show a banner; this path auto-disables once real Foodics orders exist.
+ */
+function buildDemoTableBill(tableId: string) {
+  const items = [
+    { product_id: 'demo-1', name: 'Greek Salad', quantity: 2, unit_price: 8.5, line_total: 17.0, order_id: 'demo-order-1' },
+    { product_id: 'demo-2', name: 'Tzatziki & Pita', quantity: 1, unit_price: 5.0, line_total: 5.0, order_id: 'demo-order-1' },
+    { product_id: 'demo-3', name: 'Moussaka', quantity: 2, unit_price: 12.0, line_total: 24.0, order_id: 'demo-order-2' },
+    { product_id: 'demo-4', name: 'Calamari', quantity: 1, unit_price: 11.0, line_total: 11.0, order_id: 'demo-order-2' },
+    { product_id: 'demo-5', name: 'House Wine (glass)', quantity: 3, unit_price: 6.0, line_total: 18.0, order_id: 'demo-order-2' },
+  ];
+  const subtotal = items.reduce((s, i) => s + i.line_total, 0); // 75.00
+  const taxes = Number((subtotal * 0.1).toFixed(2)); // 7.50
+  const charges = 2.5; // service charge
+  const discount = 0;
+  const total = Number((subtotal + taxes + charges - discount).toFixed(2)); // 85.00
+  const amountPaid = 0;
+  const balanceDue = Number((total - amountPaid).toFixed(2));
+  return {
+    table_id: tableId,
+    order_ids: ['demo-order-1', 'demo-order-2'],
+    currency: config.app.currency,
+    items,
+    subtotal: Number(subtotal.toFixed(2)),
+    taxes,
+    charges,
+    discount,
+    total,
+    amount_paid: Number(amountPaid.toFixed(2)),
+    balance_due: balanceDue,
+    is_paid: balanceDue <= 0,
+    per_order: [
+      { order_id: 'demo-order-1', reference: 'DEMO-001', subtotal: 22.0, total: 24.75, amount_paid: 0, balance_due: 24.75, is_paid: false },
+      { order_id: 'demo-order-2', reference: 'DEMO-002', subtotal: 53.0, total: 60.25, amount_paid: 0, balance_due: 60.25, is_paid: false },
+    ],
+  };
+}
+
+/**
  * Record a payment in Foodics by appending to the order's payments[] array.
  * Returns the updated order.
  */
@@ -174,17 +215,26 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
   // GET /payment/bill/by-table/:tableId — aggregated bill across all orders at a table.
   // Used by the split-bill flow: merges every cached order for the table into one bill,
   // and exposes each order id so the app can settle a guest's share against their own order.
+  // DEMO FALLBACK: when Foodics is not connected (or no orders cached yet), returns a
+  // clearly-flagged demo bill so the split-bill UI can be previewed. The `demo: true`
+  // flag lets the app show a "demo mode" banner; this auto-disables once Foodics is live.
   app.get('/payment/bill/by-table/:tableId', async (request, reply) => {
     const { tableId } = request.params as { tableId: string };
     try {
       const client = getFoodicsClient();
+
+      // --- DEMO FALLBACK: no Foodics token → return a sample bill ---
       if (!client.hasToken()) {
-        return reply.code(503).send({ error: 'Foodics not connected' });
+        const demoBill = buildDemoTableBill(tableId);
+        return reply.send({ bill: demoBill, demo: true });
       }
 
       const cached = getCachedOrdersByTable(tableId);
+
+      // --- DEMO FALLBACK: Foodics connected but no orders yet → sample bill ---
       if (cached.length === 0) {
-        return reply.code(404).send({ error: 'No orders found for this table yet' });
+        const demoBill = buildDemoTableBill(tableId);
+        return reply.send({ bill: demoBill, demo: true });
       }
 
       // Fetch each order fresh from Foodics to get current payments/products state.
@@ -204,7 +254,8 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
       }
 
       if (bills.length === 0) {
-        return reply.code(404).send({ error: 'No orders could be loaded for this table' });
+        const demoBill = buildDemoTableBill(tableId);
+        return reply.send({ bill: demoBill, demo: true });
       }
 
       // Merge into one aggregated bill.
@@ -244,7 +295,7 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
         })),
       };
 
-      return reply.send({ bill: aggregated });
+      return reply.send({ bill: aggregated, demo: false });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load table bill';
       console.error('[Payment] by-table error:', msg);

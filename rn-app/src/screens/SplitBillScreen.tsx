@@ -22,6 +22,7 @@ export default function SplitBillScreen({ navigation, route }: Props) {
   const { tableId } = route.params;
   const { tableGuests, myOrderId, billOwnerName } = useApp();
   const [bill, setBill] = useState<TableBill | null>(null);
+  const [demo, setDemo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,8 +30,9 @@ export default function SplitBillScreen({ navigation, route }: Props) {
 
   const load = useCallback(async () => {
     try {
-      const b = await getTableBill(tableId);
+      const { bill: b, demo: isDemo } = await getTableBill(tableId);
       setBill(b);
+      setDemo(isDemo);
       setError(null);
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.message || 'Could not load the table bill.');
@@ -118,6 +120,14 @@ export default function SplitBillScreen({ navigation, route }: Props) {
       <Text style={styles.subtitle}>
         {payerCount} {payerCount === 1 ? 'person' : 'people'} sharing · even split
       </Text>
+
+      {demo && (
+        <View style={styles.demoBanner}>
+          <Text style={styles.demoBannerText}>
+            DEMO BILL — sample data. Real bill appears once Foodics is connected.
+          </Text>
+        </View>
+      )}
 
       {/* Totals card */}
       <View style={styles.card}>
@@ -222,6 +232,11 @@ const styles = StyleSheet.create({
   retryBtnText: { color: COLORS.white, fontWeight: '700' },
   heading: { fontFamily: FONTS.serif, fontSize: 30, fontWeight: '800', color: COLORS.text },
   subtitle: { color: COLORS.textVariant, fontSize: 14, marginTop: 2, marginBottom: SPACING.md },
+  demoBanner: {
+    backgroundColor: COLORS.goldLight, borderRadius: RADIUS.md, paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md, marginBottom: SPACING.sm, borderWidth: 1, borderColor: COLORS.gold,
+  },
+  demoBannerText: { color: COLORS.goldDark, fontSize: 12, fontWeight: '700', textAlign: 'center' },
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
