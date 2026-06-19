@@ -21,10 +21,14 @@ import type { RootStackParamList } from '../../App';
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientMenu'>;
 
 export default function ClientMenuScreen({ navigation }: Props) {
-  const { billOwnerName, pendingRequests, tableGuests, reset, qrPayload } = useApp();
+  const { billOwnerName, billOwnerPhone, guestPhone, isHostSet, pendingRequests, tableGuests, reset, qrPayload, myOrderId, guestName } = useApp();
   const [popular, setPopular] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const isHost = isHostSet && billOwnerPhone === guestPhone;
+  const approvedGuests = tableGuests.filter((g) => g.approved);
+  const payerCount = Math.max(1, approvedGuests.length);
 
   const loadPopular = useCallback(async () => {
     try {
@@ -109,6 +113,7 @@ export default function ClientMenuScreen({ navigation }: Props) {
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
+          <>
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={styles.actionCard}
@@ -142,6 +147,55 @@ export default function ClientMenuScreen({ navigation }: Props) {
               <Text style={styles.actionLabel}>Call Waiter</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Bill / split-bill entry */}
+          {isHost ? (
+            <TouchableOpacity
+              style={styles.billBtn}
+              onPress={() => {
+                if (!qrPayload?.table_id) {
+                  Alert.alert('No table', 'Table information is missing.');
+                  return;
+                }
+                navigation.navigate('SplitBill', { tableId: qrPayload.table_id });
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.billIcon}>🧾</Text>
+              <View style={styles.billTextWrap}>
+                <Text style={styles.billTitle}>View & Split Bill</Text>
+                <Text style={styles.billSub}>
+                  Even split across {payerCount} {payerCount === 1 ? 'person' : 'people'}
+                </Text>
+              </View>
+              <Text style={styles.billChevron}>›</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.billBtn}
+              onPress={() => {
+                if (!qrPayload?.table_id || !myOrderId) {
+                  Alert.alert('No order yet', 'Place an order first, then settle your share.');
+                  return;
+                }
+                navigation.navigate('GuestBill', {
+                  tableId: qrPayload.table_id,
+                  orderId: myOrderId,
+                  guestName: guestName || 'Guest',
+                  payerCount,
+                });
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.billIcon}>🧾</Text>
+              <View style={styles.billTextWrap}>
+                <Text style={styles.billTitle}>View My Share</Text>
+                <Text style={styles.billSub}>Pay your part of the table bill</Text>
+              </View>
+              <Text style={styles.billChevron}>›</Text>
+            </TouchableOpacity>
+          )}
+          </>
         }
         ListEmptyComponent={
           loading ? (
@@ -241,6 +295,20 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
   },
+  billBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
+  },
+  billIcon: { fontSize: 26, marginRight: SPACING.md },
+  billTextWrap: { flex: 1 },
+  billTitle: { fontSize: 16, fontWeight: '800', color: COLORS.white },
+  billSub: { fontSize: 12, color: COLORS.primaryLight, marginTop: 2 },
+  billChevron: { fontSize: 24, fontWeight: '700', color: COLORS.gold },
   badge: {
     position: 'absolute',
     top: -6,

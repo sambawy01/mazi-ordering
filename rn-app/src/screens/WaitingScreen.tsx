@@ -55,13 +55,12 @@ export default function WaitingScreen({ navigation, route }: Props) {
           <Text style={styles.backText}>Cancel</Text>
         </TouchableOpacity>
 
-        {/* Hidden testing escape — long-press area */}
+        {/* Visible testing escape — lets subsequent guests proceed without a host in dev */}
         <TouchableOpacity
-          style={styles.escRow}
-          onLongPress={handleContinueAnyway}
-          activeOpacity={1}
+          style={styles.continueBtn}
+          onPress={handleContinueAnyway}
         >
-          <Text style={styles.escText}>MAZI</Text>
+          <Text style={styles.continueText}>Continue anyway</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -134,13 +133,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  escRow: {
+  continueBtn: {
     marginTop: SPACING.md,
-    padding: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    borderRadius: RADIUS.md,
   },
-  escText: {
-    fontSize: 11,
-    color: COLORS.outline,
-    letterSpacing: 2,
+  continueText: {
+    color: COLORS.textVariant,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

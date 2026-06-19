@@ -22,6 +22,11 @@ import StaffLoginScreen from './src/screens/StaffLoginScreen';
 import StaffTablesScreen from './src/screens/StaffTablesScreen';
 import StaffTableDetailScreen from './src/screens/StaffTableDetailScreen';
 import ApprovalsScreen from './src/screens/ApprovalsScreen';
+import BillScreen from './src/screens/BillScreen';
+import SplitBillScreen from './src/screens/SplitBillScreen';
+import GuestBillScreen from './src/screens/GuestBillScreen';
+import PaymentProcessingScreen from './src/screens/PaymentProcessingScreen';
+import PaymentResultScreen from './src/screens/PaymentResultScreen';
 
 // Keep splash visible while we bootstrap (no-op if not installed; safe)
 SplashScreen.preventAutoHideAsync?.().catch(() => {});
@@ -36,11 +41,16 @@ export type RootStackParamList = {
   ClientMenu: undefined;
   Menu: undefined;
   Cart: undefined;
-  OrderStatus: { orderId: string } | undefined;
+  OrderStatus: { orderId: string; isHost?: boolean } | undefined;
   StaffLogin: undefined;
   StaffTables: undefined;
   StaffTableDetail: { tableId: string };
   Approvals: undefined;
+  Bill: { orderId: string; tableId?: string; isHost?: boolean; guestShare?: number };
+  SplitBill: { tableId: string };
+  GuestBill: { tableId: string; orderId: string; guestName: string; payerCount: number };
+  PaymentProcessing: { orderId: string; iframeUrl: string; method: 'card' | 'instapay' | 'apple_pay' };
+  PaymentResult: { orderId: string; success: boolean; method?: 'card' | 'instapay' | 'apple_pay' | 'cash' };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -96,6 +106,13 @@ function AppStack() {
       <Stack.Screen name="Menu" component={MenuScreen} options={{ title: 'Menu' }} />
       <Stack.Screen name="Cart" component={CartScreen} options={{ title: 'Your Cart' }} />
       <Stack.Screen name="OrderStatus" component={OrderStatusScreen} options={{ title: 'Order Status' }} />
+
+      {/* Payment flow */}
+      <Stack.Screen name="Bill" component={BillScreen} options={{ title: 'Bill & Payment' }} />
+      <Stack.Screen name="SplitBill" component={SplitBillScreen} options={{ title: 'Split Bill' }} />
+      <Stack.Screen name="GuestBill" component={GuestBillScreen} options={{ title: 'Your Share' }} />
+      <Stack.Screen name="PaymentProcessing" component={PaymentProcessingScreen} options={{ title: 'Secure Payment' }} />
+      <Stack.Screen name="PaymentResult" component={PaymentResultScreen} options={{ headerShown: false }} />
 
       {/* Staff flow */}
       <Stack.Screen name="StaffLogin" component={StaffLoginScreen} options={{ title: 'Staff Login', headerShown: false }} />

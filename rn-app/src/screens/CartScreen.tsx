@@ -20,12 +20,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Cart'>;
 const VAT_RATE = 0.10;
 
 export default function CartScreen({ navigation }: Props) {
-  const { cart, updateCartQty, removeFromCart, clearCart, qrPayload, guestName, guestPhone } = useApp();
+  const { cart, updateCartQty, removeFromCart, clearCart, qrPayload, guestName, guestPhone, setMyOrderId, billOwnerPhone, isHostSet } = useApp();
   const [submitting, setSubmitting] = useState(false);
 
   const subtotal = cart.reduce((sum, c) => sum + c.product.price * c.quantity, 0);
   const vat = subtotal * VAT_RATE;
   const total = subtotal + vat;
+
+  const isHost = isHostSet && billOwnerPhone === guestPhone;
 
   const handleSubmit = async () => {
     if (cart.length === 0) return;
@@ -45,8 +47,9 @@ export default function CartScreen({ navigation }: Props) {
         customer_phone: guestPhone,
         customer_name: guestName,
       });
+      setMyOrderId(order.id);
       clearCart();
-      navigation.replace('OrderStatus', { orderId: order.id });
+      navigation.replace('OrderStatus', { orderId: order.id, isHost });
     } catch (err: any) {
       Alert.alert(
         'Order failed',

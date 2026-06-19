@@ -30,7 +30,7 @@ const COUNTRY_CODES = [
 ];
 
 export default function PhoneEntryScreen({ navigation, route }: Props) {
-  const { setBillOwner, isHostSet, guestName, guestPhone } = useApp();
+  const { setBillOwner, setGuestInfo, isHostSet, guestName, guestPhone } = useApp();
   const [name, setName] = useState(guestName || '');
   const [countryCode, setCountryCode] = useState('+30');
   const [phone, setPhone] = useState(guestPhone.replace(/^\+\d+/, '') || '');
@@ -52,6 +52,9 @@ export default function PhoneEntryScreen({ navigation, route }: Props) {
     setLoading(true);
     try {
       await sendPhoneCode(fullPhone);
+      // Always persist the current user's own guest info (name + phone),
+      // so host detection (billOwnerPhone === guestPhone) works correctly.
+      setGuestInfo(name.trim(), fullPhone);
       // Persist as bill owner if first guest, otherwise as plain guest info
       if (!isHostSet) {
         setBillOwner(name.trim(), fullPhone);

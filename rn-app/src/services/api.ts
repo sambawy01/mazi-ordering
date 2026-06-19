@@ -127,6 +127,99 @@ export async function addProductsToOrder(orderId: string, products: any[]) {
   return res.data.order as Order;
 }
 
+// --- Payment ---
+export interface BillItem {
+  product_id: string | null;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  order_id?: string;
+}
+
+export interface Bill {
+  order_id: string | null;
+  reference: string | null;
+  table_id: string | null;
+  currency: string;
+  items: BillItem[];
+  subtotal: number;
+  taxes: number;
+  charges: number;
+  discount: number;
+  total: number;
+  amount_paid: number;
+  balance_due: number;
+  is_paid: boolean;
+}
+
+export interface FoodicsPaymentMethod {
+  id: string;
+  name?: string;
+  code?: string;
+  type?: string | number;
+}
+
+export type PaymobMethod = 'card' | 'instapay' | 'apple_pay';
+
+export async function getPaymentMethods() {
+  const res = await api.get('/payment/methods');
+  return res.data.payment_methods as FoodicsPaymentMethod[];
+}
+
+export async function getBill(orderId: string) {
+  const res = await api.get(`/payment/bill/${encodeURIComponent(orderId)}`);
+  return res.data.bill as Bill;
+}
+
+// Aggregated table bill (all orders at the table merged).
+export interface TableBill extends Bill {
+  order_ids: string[];
+  per_order: {
+    order_id: string;
+    reference: string | null;
+    subtotal: number;
+    total: number;
+    amount_paid: number;
+    balance_due: number;
+    is_paid: boolean;
+  }[];
+}
+
+export async function getTableBill(tableId: string) {
+  const res = await api.get(`/payment/bill/by-table/${encodeURIComponent(tableId)}`);
+  return res.data.bill as TableBill;
+}
+
+export async function createPaymentIntent(data: {
+  orderId: string;
+  amount: number;
+  method: PaymobMethod;
+  billing?: Record<string, any>;
+}) {
+  const res = await api.post('/payment/intent', data);
+  return res.data as {
+    paymob_order_id: number;
+    payment_key: string;
+    iframe_url: string;
+    method: PaymobMethod;
+    amount: number;
+  };
+}
+
+export async function settlePayment(data: {
+  orderId: string;
+  amount: number;
+  method?: PaymobMethod | 'cash';
+  paymentMethodId?: string;
+  tendered?: number;
+  tips?: number;
+  meta?: Record<string, any>;
+}) {
+  const res = await api.post('/payment/settle', data);
+  return res.data as { order: Order; bill: Bill };
+}
+
 // --- Webhooks (for testing) ---
 export async function getWebhookEvents() {
   const res = await api.get('/webhooks/events');

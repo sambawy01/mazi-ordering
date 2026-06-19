@@ -26,12 +26,15 @@ const STATUS_STEPS = [
 ];
 
 export default function OrderStatusScreen({ navigation, route }: Props) {
-  const { qrPayload } = useApp();
+  const { qrPayload, myOrderId, isHostSet, billOwnerPhone, guestPhone, tableGuests, guestName } = useApp();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestingBill, setRequestingBill] = useState(false);
 
   const orderId = route.params?.orderId;
+  const isHost = isHostSet && billOwnerPhone === guestPhone;
+  const approvedGuests = tableGuests.filter((g) => g.approved);
+  const payerCount = Math.max(1, approvedGuests.length);
 
   const load = useCallback(async () => {
     try {
@@ -59,11 +62,22 @@ export default function OrderStatusScreen({ navigation, route }: Props) {
   }, [load]);
 
   const requestBill = () => {
-    setRequestingBill(true);
-    setTimeout(() => {
-      setRequestingBill(false);
-      Alert.alert('Bill requested', 'Your waiter has been notified. The bill will be brought to your table.');
-    }, 800);
+    if (!qrPayload?.table_id) {
+      Alert.alert('No table', 'Table information is missing.');
+      return;
+    }
+    if (isHost) {
+      navigation.navigate('SplitBill', { tableId: qrPayload.table_id });
+    } else if (myOrderId) {
+      navigation.navigate('GuestBill', {
+        tableId: qrPayload.table_id,
+        orderId: myOrderId,
+        guestName: guestName || 'Guest',
+        payerCount,
+      });
+    } else {
+      Alert.alert('No order yet', 'Place an order first, then settle your share.');
+    }
   };
 
   const currentStep = order?.status ?? 1;
@@ -147,12 +161,13 @@ export default function OrderStatusScreen({ navigation, route }: Props) {
       </View>
 
       <TouchableOpacity
-        style={[styles.billBtn, requestingBill && styles.billBtnDisabled]}
+        style={styles.billBtn}
         onPress={requestBill}
-        disabled={requestingBill}
         activeOpacity={0.85}
       >
-        {requestingBill ? <ActivityIndicator color={COLORS.text} /> : <Text style={styles.billBtnText}>Request the Bill</Text>}
+        <Text style={styles.billBtnText}>
+          {isHost ? 'View & Split the Bill' : 'View & Pay My Share'}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.menuLink} onPress={() => navigation.navigate('ClientMenu')}>

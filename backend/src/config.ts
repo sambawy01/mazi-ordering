@@ -24,9 +24,23 @@ export const config = {
     name: process.env.APP_NAME || 'Foodics Ordering',
     currency: process.env.DEFAULT_CURRENCY || 'SAR',
   },
+  paymob: {
+    // Base URL for the Paymob Accept API (Egypt region by default).
+    baseUrl: process.env.PAYMOB_BASE_URL || 'https://accept.paymob.com',
+    apiKey: process.env.PAYMOB_API_KEY || '',
+    // One integration ID per supported payment method.
+    integrationCardId: process.env.PAYMOB_INTEGRATION_ID_CARD || '',
+    integrationInstapayId: process.env.PAYMOB_INTEGRATION_ID_INSTAPAY || '',
+    integrationApplePayId: process.env.PAYMOB_INTEGRATION_ID_APPLE_PAY || '',
+    // Iframe used to render the hosted card/instapay/apple-pay form.
+    iframeId: process.env.PAYMOB_IFRAME_ID || '',
+    // HMAC secret used to verify webhook authenticity.
+    webhookSecret: process.env.PAYMOB_WEBHOOK_HMAC_SECRET || '',
+  },
   cache: {
     menuTtlMs: 5 * 60 * 1000,     // 5 minutes
     tableTtlMs: 30 * 1000,          // 30 seconds
     branchTtlMs: 60 * 60 * 1000,    // 1 hour
+    paymentMethodsTtlMs: 5 * 60 * 1000, // 5 minutes
   },
 } as const;

@@ -35,3 +35,5 @@ ref2_small.png
 .vscode/
 .idea/
 *.iml
+# Expo web build cache
+rn-app/.expo/

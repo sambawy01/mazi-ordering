@@ -12,6 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS, SPACING, RADIUS } from '../theme';
 import { verifyPhoneCode, sendPhoneCode } from '../services/api';
+import { useApp } from '../services/AppContext';
 import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Otp'>;
@@ -19,6 +20,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Otp'>;
 const CODE_LENGTH = 4;
 
 export default function OtpScreen({ navigation, route }: Props) {
+  const { isHostSet, billOwnerPhone } = useApp();
   const name = route.params?.name ?? '';
   const phone = route.params?.phone ?? '';
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
@@ -67,8 +69,12 @@ export default function OtpScreen({ navigation, route }: Props) {
     try {
       await verifyPhoneCode(phone, entered);
       Keyboard.dismiss();
-      // Verified → go to waiting screen for host approval (or directly to menu if host)
-      navigation.replace('Waiting', { name, phone });
+      // First guest (host) goes straight to the menu; subsequent guests wait for approval
+      if (!isHostSet || billOwnerPhone === phone) {
+        navigation.reset({ index: 0, routes: [{ name: 'ClientMenu' }] });
+      } else {
+        navigation.replace('Waiting', { name, phone });
+      }
     } catch (err: any) {
       Alert.alert(
         'Verification failed',

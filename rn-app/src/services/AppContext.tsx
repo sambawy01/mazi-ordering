@@ -10,6 +10,8 @@ interface AppState {
   isHostSet: boolean;
   billOwnerName: string;
   billOwnerPhone: string;
+  // Current user's own order (set when they submit a cart) — used to settle their share
+  myOrderId: string | null;
   // Table
   qrPayload: QRPayload | null;
   // Guests
@@ -28,6 +30,7 @@ const initialState: AppState = {
   isHostSet: false,
   billOwnerName: '',
   billOwnerPhone: '',
+  myOrderId: null,
   qrPayload: null,
   tableGuests: [],
   pendingRequests: [],
@@ -39,6 +42,7 @@ const initialState: AppState = {
 interface AppContextType extends AppState {
   setGuestInfo: (name: string, phone: string) => void;
   setBillOwner: (name: string, phone: string) => void;
+  setMyOrderId: (orderId: string | null) => void;
   setQRPayload: (payload: QRPayload | null) => void;
   addGuest: (guest: Guest) => void;
   addPendingRequest: (req: any) => void;
@@ -100,6 +104,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tableGuests: [{ id: '0', name: name + ' (You)', phone, role: 'owner', approved: true }],
     });
   };
+
+  const setMyOrderId = (orderId: string | null) => update({ myOrderId: orderId });
 
   const setQRPayload = (payload: QRPayload | null) => {
     update({ qrPayload: payload });
@@ -205,6 +211,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ...state,
         setGuestInfo,
         setBillOwner,
+        setMyOrderId,
         setQRPayload,
         addGuest,
         addPendingRequest,

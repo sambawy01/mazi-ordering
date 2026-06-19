@@ -16,6 +16,7 @@ import { orderRoutes } from './routes/orders.js';
 import { qrcodeRoutes } from './routes/qrcode.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { phoneRoutes } from './routes/phone.js';
+import { paymentRoutes } from './routes/payment.js';
 
 async function main(): Promise<void> {
   // Initialize SQLite
@@ -49,6 +50,7 @@ async function main(): Promise<void> {
   await app.register(qrcodeRoutes, { prefix: '/api' });
   await app.register(webhookRoutes, { prefix: '/api' });
   await app.register(phoneRoutes, { prefix: '/api' });
+  await app.register(paymentRoutes, { prefix: '/api' });
 
   // WebSocket endpoint at /ws
   app.get('/ws', { websocket: true }, (socket, request) => {

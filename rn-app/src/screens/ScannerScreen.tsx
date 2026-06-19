@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Platform } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Platform,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, SPACING, RADIUS } from '../theme';
@@ -17,25 +18,27 @@ import type { RootStackParamList } from '../../App';
 type Props = NativeStackScreenProps<RootStackParamList, 'Scanner'>;
 
 export default function ScannerScreen({ navigation }: Props) {
-  const { setQRPayload } = useApp();
+  const { setQRPayload, reset } = useApp();
 
   // Web fallback: manual table code entry
   if (Platform.OS === 'web') {
-    return <WebScannerFallback navigation={navigation} setQRPayload={setQRPayload} />;
+    return <WebScannerFallback navigation={navigation} setQRPayload={setQRPayload} reset={reset} />;
   }
 
   // Native: use camera scanner
-  return <NativeScanner navigation={navigation} setQRPayload={setQRPayload} />;
+  return <NativeScanner navigation={navigation} setQRPayload={setQRPayload} reset={reset} />;
 }
 
 // --- Web fallback ---
-function WebScannerFallback({ navigation, setQRPayload }: any) {
+function WebScannerFallback({ navigation, setQRPayload, reset }: any) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSimulate = async () => {
     setLoading(true);
     try {
+      // Fresh table session — clear any stale host/bill-owner from a previous session
+      reset();
       // Simulate scanning a table QR
       const fakePayload = JSON.stringify({ t: 'table-5', r: 'Terrace', b: 'branch-1' });
       const payload = await decodeQRPayload(fakePayload);
@@ -76,7 +79,7 @@ function WebScannerFallback({ navigation, setQRPayload }: any) {
 }
 
 // --- Native scanner ---
-function NativeScanner({ navigation, setQRPayload }: any) {
+function NativeScanner({ navigation, setQRPayload, reset }: any) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [decoding, setDecoding] = useState(false);
@@ -94,6 +97,8 @@ function NativeScanner({ navigation, setQRPayload }: any) {
     setScanned(true);
     setDecoding(true);
     try {
+      // Fresh table session — clear any stale host/bill-owner from a previous session
+      reset();
       const payload = await decodeQRPayload(data);
       setQRPayload(payload);
       navigation.replace('PhoneEntry', { qrPayloadString: data });

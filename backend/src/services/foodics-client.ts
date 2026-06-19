@@ -228,6 +228,22 @@ export class FoodicsClient {
     return res.data.data;
   }
 
+  // --- Payment Methods ---
+
+  /**
+   * List the payment methods configured in Foodics.
+   * Returns id, name, code, type for each method (e.g. cash, card).
+   * Foodics does NOT process payments — these IDs are used when recording
+   * a settled payment on an order via the payments[] array.
+   */
+  async listPaymentMethods(): Promise<Record<string, unknown>[]> {
+    this.checkRateLimit();
+    const res = await this.http.get<FoodicsListResponse<Record<string, unknown>>>('/payment-methods', {
+      params: { per_page: 100 },
+    });
+    return res.data.data;
+  }
+
   // --- Whoami (verify token) ---
 
   async whoami(): Promise<Record<string, unknown>> {
