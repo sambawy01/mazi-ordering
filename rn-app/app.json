@@ -19,10 +19,11 @@
       "package": "com.mazi.ordering"
     },
     "web": {
-      "bundler": "metro",
+      "bundler": "webpack",
       "output": "static",
       "favicon": "./assets/mazi_logo_clean.png"
     },
+    "platforms": ["ios", "android", "web"],
     "plugins": [
       [
         "expo-camera",
