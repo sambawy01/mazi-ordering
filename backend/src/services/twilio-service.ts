@@ -17,7 +17,7 @@ export class TwilioVerifyService {
 
   constructor() {
     this.accountSid = process.env.TWILIO_ACCOUNT_SID || '';
-    this.authToken = process.env.TWIO_AUTH_TOKEN || '';
+    this.authToken = process.env.TWILIO_AUTH_TOKEN || '';
     this.verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID || '';
     // Twilio uses Basic Auth with Account SID : Auth Token
     this.authHeader = 'Basic ' + Buffer.from(`${this.accountSid}:${this.authToken}`).toString('base64');

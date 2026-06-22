@@ -30,8 +30,12 @@ async function main(): Promise<void> {
   });
 
   // Register plugins
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((s: string) => s.trim())
+    : true; // Allow all in dev when CORS_ORIGINS not set
+
   await app.register(cors, {
-    origin: true, // Allow all origins in dev (restrict in prod)
+    origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });

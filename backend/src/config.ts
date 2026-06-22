@@ -17,7 +17,7 @@ export const config = {
   },
   backend: {
     port: parseInt(process.env.PORT || process.env.BACKEND_PORT || '3000', 10),
-    jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-me',
+    jwtSecret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'dev-secret-change-me'),
     dbPath: process.env.DB_PATH || './data/foodics.db',
   },
   app: {
