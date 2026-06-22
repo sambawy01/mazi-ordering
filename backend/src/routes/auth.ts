@@ -4,7 +4,9 @@ import { getFoodicsClient } from '../services/foodics-client.js';
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   // POST /auth/waiter — waiter login by app_id + pin
-  app.post('/auth/waiter', async (request, reply) => {
+  app.post('/auth/waiter', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const { app_id, pin } = (request.body ?? {}) as { app_id?: string; pin?: string };
     if (!app_id || !pin) {
       return reply.code(400).send({ error: 'app_id and pin are required' });

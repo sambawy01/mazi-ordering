@@ -5,6 +5,8 @@ import { sendToWaiters, sendToTable } from '../services/websocket-service.js';
 import { config } from '../config.js';
 import { OrderType } from '../types/index.js';
 import type { CreateOrderRequest, CreateOrderProduct } from '../types/index.js';
+import { isPhoneVerified } from './phone.js';
+import { validateSession } from '../services/auth-service.js';
 
 export async function orderRoutes(app: FastifyInstance): Promise<void> {
   // POST /orders — create order (waiter or client via QR)
@@ -13,7 +15,21 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
       source?: 'waiter' | 'client_qr';
       reservation_name?: string;
       creator_user_id?: string;  // waiter's Foodics user ID
+      phone?: string;            // for client_qr source, phone must be verified
     };
+
+    // Auth: waiters need a valid JWT; clients need a verified phone.
+    if (body.source === 'waiter') {
+      const auth = request.headers.authorization;
+      if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+      const session = validateSession(auth.slice(7));
+      if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
+    } else {
+      // Client QR flow — must have verified phone.
+      if (!body.phone || !isPhoneVerified(body.phone)) {
+        return reply.code(403).send({ error: 'Phone verification required to place order' });
+      }
+    }
 
     // Build the order payload for Foodics
     const orderPayload: CreateOrderRequest = {
@@ -71,8 +87,13 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  // PUT /orders/:id — update order (add products, change status)
+  // PUT /orders/:id — update order (add products, change status) — waiter only
   app.put('/orders/:id', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
+
     const { id } = request.params as { id: string };
     const body = (request.body ?? {}) as Record<string, unknown>;
 
@@ -134,8 +155,13 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  // POST /orders/:id/products — add products to an existing order
+  // POST /orders/:id/products — add products to an existing order — waiter only
   app.post('/orders/:id/products', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
+
     const { id } = request.params as { id: string };
     const { products } = (request.body ?? {}) as { products?: CreateOrderProduct[] };
 

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { getTwilioService } from '../services/twilio-service.js';
-import { setSetting, getSetting } from '../db/index.js';
+import { setVerifiedPhone, isPhoneVerifiedDB } from '../db/index.js';
 
 /**
  * Phone verification routes using Twilio Verify API.
@@ -8,27 +8,18 @@ import { setSetting, getSetting } from '../db/index.js';
  *   1. POST /phone/send-code    → sends SMS OTP to guest's phone
  *   2. POST /phone/verify-code  → checks the code, marks phone as verified
  *   3. GET /phone/verified/:phone → checks if a phone was verified recently
+ *
+ * Verified phones are stored in SQLite (verified_phones table) so they survive
+ * server restarts and redeploys.
  */
-
-// In-memory store of recently verified phones (with TTL)
-const verifiedPhones = new Map<string, number>(); // phone → timestamp
-const VERIFIED_PHONE_TTL = 30 * 60 * 1000; // 30 minutes
-
-// Clean up expired entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [phone, ts] of verifiedPhones) {
-    if (now - ts > VERIFIED_PHONE_TTL) {
-      verifiedPhones.delete(phone);
-    }
-  }
-}, 5 * 60 * 1000);
 
 export async function phoneRoutes(app: FastifyInstance): Promise<void> {
 
   // POST /phone/send-code — send SMS OTP to guest's phone
   // Body: { phone: "+3069****4567", channel?: "sms" | "call" | "whatsapp" }
-  app.post('/phone/send-code', async (request, reply) => {
+  app.post('/phone/send-code', {
+    config: { rateLimit: { max: 3, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const { phone, channel } = (request.body ?? {}) as { phone?: string; channel?: 'sms' | 'call' | 'whatsapp' };
 
     if (!phone) {
@@ -62,7 +53,9 @@ export async function phoneRoutes(app: FastifyInstance): Promise<void> {
 
   // POST /phone/verify-code — verify the SMS code
   // Body: { phone: "+3069****4567", code: "1234" }
-  app.post('/phone/verify-code', async (request, reply) => {
+  app.post('/phone/verify-code', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const { phone, code } = (request.body ?? {}) as { phone?: string; code?: string };
 
     if (!phone || !code) {
@@ -75,7 +68,7 @@ export async function phoneRoutes(app: FastifyInstance): Promise<void> {
     if (!twilio.isConfigured()) {
       // Dev mode: accept any 4-6 digit code
       if (/^\d{4,6}$/.test(code)) {
-        verifiedPhones.set(phoneClean, Date.now());
+        setVerifiedPhone(phoneClean);
         return reply.send({ success: true, verified: true, phone: phoneClean, dev_mode: true });
       } else {
         return reply.code(400).send({ error: 'Invalid code' });
@@ -86,7 +79,7 @@ export async function phoneRoutes(app: FastifyInstance): Promise<void> {
 
     if (result.success) {
       // Mark phone as verified for 30 minutes
-      verifiedPhones.set(phoneClean, Date.now());
+      setVerifiedPhone(phoneClean);
       return reply.send({ success: true, verified: true, phone: phoneClean });
     } else {
       return reply.code(400).send({ error: result.error || 'Verification failed', status: result.status });
@@ -98,31 +91,15 @@ export async function phoneRoutes(app: FastifyInstance): Promise<void> {
     const { phone } = request.params as { phone: string };
     const phoneClean = phone.replace(/[\s\-\(\)]/g, '');
 
-    const verifiedAt = verifiedPhones.get(phoneClean);
-    if (!verifiedAt) {
-      return reply.send({ verified: false });
-    }
-
-    // Check if still within TTL
-    if (Date.now() - verifiedAt > VERIFIED_PHONE_TTL) {
-      verifiedPhones.delete(phoneClean);
-      return reply.send({ verified: false });
-    }
-
-    return reply.send({ verified: true, phone: phoneClean, verified_at: verifiedAt });
+    const verified = isPhoneVerifiedDB(phoneClean);
+    return reply.send({ verified, phone: phoneClean });
   });
 }
 
 /**
- * Helper: check if a phone is verified (used by orders route)
+ * Helper: check if a phone is verified (used by orders + payment routes)
  */
 export function isPhoneVerified(phone: string): boolean {
   const phoneClean = phone.replace(/[\s\-\(\)]/g, '');
-  const verifiedAt = verifiedPhones.get(phoneClean);
-  if (!verifiedAt) return false;
-  if (Date.now() - verifiedAt > VERIFIED_PHONE_TTL) {
-    verifiedPhones.delete(phoneClean);
-    return false;
-  }
-  return true;
+  return isPhoneVerifiedDB(phoneClean);
 }

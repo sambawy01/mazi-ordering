@@ -4,6 +4,9 @@ import { getPaymobClient, toCents, type PaymobOrderItem } from '../services/paym
 import { setOrderCache, getCachedOrdersByTable } from '../db/index.js';
 import { sendToWaiters } from '../services/websocket-service.js';
 import { config } from '../config.js';
+import { validateSession } from '../services/auth-service.js';
+import { isPhoneVerified } from './phone.js';
+import { setPendingIntent, getPendingIntent, markIntentSettled } from '../db/index.js';
 
 /**
  * Payment routes — Paymob (Card / InstaPay / Apple Pay) + Cash, recorded into
@@ -13,17 +16,9 @@ import { config } from '../config.js';
 // --- Payment-methods cache (5 min, in-memory) ---
 let paymentMethodsCache: { data: Record<string, unknown>[]; syncedAt: number } | null = null;
 
-// --- Paymob intent tracking (in-memory) ---
+// --- Paymob intent tracking (persisted to SQLite) ---
 // Maps a Paymob order id -> the data needed to settle the matching Foodics order
-// when the asynchronous webhook arrives.
-interface PendingIntent {
-  orderId: string;
-  amount: number;
-  paymentMethodId: string;
-  method: 'card' | 'instapay' | 'apple_pay';
-  settled: boolean;
-}
-const pendingIntents = new Map<string, PendingIntent>();
+// when the asynchronous webhook arrives. Stored in DB so it survives redeploys.
 
 type FoodicsPaymentMethod = {
   id: string;
@@ -223,8 +218,11 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
     try {
       const client = getFoodicsClient();
 
-      // --- DEMO FALLBACK: no Foodics token → return a sample bill ---
+      // --- DEMO FALLBACK: no Foodics token → return error in prod, demo bill in dev ---
       if (!client.hasToken()) {
+        if (config.backend.isProd) {
+          return reply.code(503).send({ error: 'Foodics not connected' });
+        }
         const demoBill = buildDemoTableBill(tableId);
         return reply.send({ bill: demoBill, demo: true });
       }
@@ -304,13 +302,24 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /payment/intent — create a Paymob payment intent (Card/InstaPay/Apple Pay)
+  // Requires verified phone (guest) or waiter JWT.
   app.post('/payment/intent', async (request, reply) => {
     const body = (request.body ?? {}) as {
       orderId?: string;
       amount?: number;
       method?: 'card' | 'instapay' | 'apple_pay';
       billing?: Record<string, unknown>;
+      phone?: string;
     };
+
+    // Auth: waiter JWT or verified phone.
+    const auth = request.headers.authorization;
+    const isWaiter = auth?.startsWith('Bearer ') && validateSession(auth.slice(7));
+    if (!isWaiter) {
+      if (!body.phone || !isPhoneVerified(body.phone)) {
+        return reply.code(403).send({ error: 'Phone verification required to make payment' });
+      }
+    }
 
     const { orderId, amount, method } = body;
     if (!orderId || typeof amount !== 'number' || amount <= 0 || !method) {
@@ -361,10 +370,11 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
       const iframeUrl = paymob.getIframeUrl(paymentKey);
 
       // Remember the intent so the webhook can settle the right Foodics order.
-      pendingIntents.set(String(paymobOrderId), {
-        orderId,
+      setPendingIntent({
+        paymob_order_id: String(paymobOrderId),
+        order_id: orderId,
         amount,
-        paymentMethodId: foodicsMethodId,
+        payment_method_id: foodicsMethodId,
         method,
         settled: false,
       });
@@ -377,18 +387,23 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
         amount,
       });
     } catch (err: any) {
-      const msg = err?.response?.data
+      // Log full error internally, but don't leak API details to client.
+      const internalMsg = err?.response?.data
         ? JSON.stringify(err.response.data)
-        : err instanceof Error
-        ? err.message
-        : 'Failed to create payment intent';
-      console.error('[Payment] intent error:', msg);
-      return reply.code(400).send({ error: msg });
+        : err instanceof Error ? err.message : 'Unknown error';
+      console.error('[Payment] intent error:', internalMsg);
+      return reply.code(400).send({ error: 'Failed to create payment intent. Please try again.' });
     }
   });
 
   // POST /payment/settle — record a payment in Foodics (used for Cash + manual settle)
+  // Requires waiter auth.
   app.post('/payment/settle', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
+
     const body = (request.body ?? {}) as {
       orderId?: string;
       paymentMethodId?: string;
@@ -438,9 +453,13 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /payment/settle-table — settle the full table balance in one go (host "one tap").
-  // Distributes the payment across the table's orders. In demo mode (no Foodics), returns
-  // a mocked settled bill so the UI can confirm the flow end-to-end.
+  // Requires waiter auth.
   app.post('/payment/settle-table', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
+
     const body = (request.body ?? {}) as {
       tableId?: string;
       method?: 'card' | 'instapay' | 'apple_pay' | 'cash';
@@ -452,8 +471,11 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
     try {
       const client = getFoodicsClient();
 
-      // --- DEMO MODE: no Foodics ---
+      // --- DEMO MODE: no Foodics → error in prod, demo in dev ---
       if (!client.hasToken()) {
+        if (config.backend.isProd) {
+          return reply.code(503).send({ error: 'Foodics not connected' });
+        }
         const demoBill = buildDemoTableBill(tableId);
         // mark as fully paid
         const settled = { ...demoBill, amount_paid: demoBill.total, balance_due: 0, is_paid: true };
@@ -534,15 +556,25 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
 
     const paymob = getPaymobClient();
 
-    // Verify authenticity. If a secret is configured and verification fails, reject.
-    if (config.paymob.webhookSecret && !paymob.verifyWebhook(hmac, txn)) {
-      console.warn('[Payment] webhook HMAC verification failed');
-      return reply.code(401).send({ error: 'Invalid signature' });
+    // Verify authenticity. In production, webhook secret MUST be configured.
+    // If secret is unset in production, reject all webhooks (fail-closed).
+    // In development, allow through with a warning.
+    if (config.backend.isProd && !config.paymob.webhookSecret) {
+      console.error('[Payment] PAYMOB_WEBHOOK_HMAC_SECRET not set in production — rejecting webhook');
+      return reply.code(500).send({ error: 'Webhook secret not configured' });
+    }
+    if (config.paymob.webhookSecret) {
+      if (!hmac || !paymob.verifyWebhook(hmac, txn)) {
+        console.warn('[Payment] webhook HMAC verification failed');
+        return reply.code(401).send({ error: 'Invalid signature' });
+      }
+    } else {
+      console.warn('[Payment] webhook HMAC secret not set (dev mode) — accepting without verification');
     }
 
     const success = txn.success === true || txn.success === 'true';
     const paymobOrderId = String(txn.order?.id ?? txn.order ?? '');
-    const intent = pendingIntents.get(paymobOrderId);
+    const intent = getPendingIntent(paymobOrderId);
 
     // Always acknowledge quickly so Paymob stops retrying.
     if (!intent) {
@@ -553,8 +585,8 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
     if (success && !intent.settled) {
       try {
         await settleInFoodics({
-          orderId: intent.orderId,
-          paymentMethodId: intent.paymentMethodId,
+          orderId: intent.order_id,
+          paymentMethodId: intent.payment_method_id,
           amount: intent.amount,
           meta: {
             source: 'paymob',
@@ -563,8 +595,8 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
             paymob_transaction_id: txn.id,
           },
         });
-        intent.settled = true;
-        console.log(`[Payment] settled Foodics order ${intent.orderId} via Paymob`);
+        markIntentSettled(paymobOrderId);
+        console.log(`[Payment] settled Foodics order ${intent.order_id} via Paymob`);
       } catch (err) {
         console.error('[Payment] webhook settle failed:', err instanceof Error ? err.message : err);
       }

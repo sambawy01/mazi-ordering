@@ -3,9 +3,23 @@ dotenv.config();
 
 function required(key: string): string {
   const val = process.env[key];
-  if (!val) throw new Error(`Missing env var: ${key}`);
+  if (!val) throw new Error(`Missing required env var: ${key}`);
   return val;
 }
+
+const isProd = process.env.NODE_ENV === 'production';
+
+// JWT_SECRET must be set — no insecure fallback.
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET env var is required. Generate one with: openssl rand -hex 32');
+}
+
+// CORS origins — comma-separated list of allowed origins.
+const corsOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 export const config = {
   foodics: {
@@ -17,8 +31,10 @@ export const config = {
   },
   backend: {
     port: parseInt(process.env.PORT || process.env.BACKEND_PORT || '3000', 10),
-    jwtSecret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'dev-secret-change-me'),
+    jwtSecret,
     dbPath: process.env.DB_PATH || './data/foodics.db',
+    isProd,
+    corsOrigins,
   },
   app: {
     name: process.env.APP_NAME || 'Foodics Ordering',

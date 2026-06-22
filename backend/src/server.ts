@@ -1,7 +1,10 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import { config } from './config.js';
+import { validateSession } from './services/auth-service.js';
 import { initDB } from './db/index.js';
 import { startSyncLoops } from './services/cache-service.js';
 import { getFoodicsClient } from './services/foodics-client.js';
@@ -30,14 +33,25 @@ async function main(): Promise<void> {
   });
 
   // Register plugins
-  const corsOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map((s: string) => s.trim())
-    : true; // Allow all in dev when CORS_ORIGINS not set
-
   await app.register(cors, {
-    origin: corsOrigins,
+    // In production, restrict to explicit origins via CORS_ORIGINS env var.
+    // In development, allow all origins.
+    origin: config.backend.isProd
+      ? (config.backend.corsOrigins.length > 0 ? config.backend.corsOrigins : false)
+      : true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
+  // Rate limiting — global default limit.
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+  });
+
+  // Security headers.
+  await app.register(helmet, {
+    contentSecurityPolicy: false, // API server, not a browser app
   });
 
   await app.register(websocket, {
@@ -56,12 +70,27 @@ async function main(): Promise<void> {
   await app.register(phoneRoutes, { prefix: '/api' });
   await app.register(paymentRoutes, { prefix: '/api' });
 
-  // WebSocket endpoint at /ws
+  // WebSocket endpoint at /ws — requires JWT auth for waiter role.
   app.get('/ws', { websocket: true }, (socket, request) => {
     const clientId = uuidv4();
-    const role = (request.query as any).role as 'waiter' | 'client' | 'unknown' || 'unknown';
-    const tableId = (request.query as any).table_id as string | undefined;
-    const waiterId = (request.query as any).waiter_id as string | undefined;
+    const query = request.query as Record<string, string | undefined>;
+    const role = query.role as 'waiter' | 'client' | 'unknown' || 'unknown';
+    const tableId = query.table_id;
+    const waiterId = query.waiter_id;
+    const token = query.token;
+
+    // If claiming waiter role, must present a valid JWT.
+    if (role === 'waiter') {
+      if (!token) {
+        socket.close(4001, 'Authentication required for waiter role');
+        return;
+      }
+      const session = validateSession(token);
+      if (!session) {
+        socket.close(4001, 'Invalid or expired token');
+        return;
+      }
+    }
 
     addClient({ ws: socket, id: clientId, role, tableId, waiterId });
 

@@ -3,11 +3,16 @@ import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config.js';
 import { getDB } from '../db/index.js';
+import { validateSession } from '../services/auth-service.js';
 
 export async function qrcodeRoutes(app: FastifyInstance): Promise<void> {
-  // POST /qrcode/generate — generate QR for a table
+  // POST /qrcode/generate — generate QR for a table (waiter only)
   // Body: { table_id, reservation_name, branch_id? }
   app.post('/qrcode/generate', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
     const { table_id, reservation_name, branch_id } = (request.body ?? {}) as {
       table_id?: string;
       reservation_name?: string;
@@ -59,8 +64,12 @@ export async function qrcodeRoutes(app: FastifyInstance): Promise<void> {
     });
   });
 
-  // GET /qrcode/list — list all generated QR codes
-  app.get('/qrcode/list', async (_request, reply) => {
+  // GET /qrcode/list — list all generated QR codes (waiter only)
+  app.get('/qrcode/list', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
     const db = getDB();
     const codes = db.prepare(`
       SELECT id, table_id, table_name, reservation_name, branch_id, created_at

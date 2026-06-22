@@ -108,6 +108,26 @@ function createTables(): void {
       payload TEXT,
       received_at TEXT DEFAULT (datetime('now'))
     );
+
+    -- Verified phone numbers (replaces in-memory Map)
+    CREATE TABLE IF NOT EXISTS verified_phones (
+      phone TEXT PRIMARY KEY,
+      verified_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_verified_phones_verified_at ON verified_phones(verified_at);
+
+    -- Paymob payment intents pending webhook settlement
+    CREATE TABLE IF NOT EXISTS pending_intents (
+      paymob_order_id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      payment_method_id TEXT NOT NULL,
+      method TEXT NOT NULL,
+      settled INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_pending_intents_settled ON pending_intents(settled);
+    CREATE INDEX IF NOT EXISTS idx_order_cache_table_id ON order_cache(table_id);
   `);
 }
 
@@ -259,4 +279,75 @@ export function logWebhookEvent(event: { event_type: string; resource_type: stri
     VALUES (?, ?, ?, ?)
   `);
   stmt.run(event.event_type, event.resource_type, event.resource_id, event.payload);
+}
+
+// --- Verified phones (persistent, replaces in-memory Map) ---
+
+const VERIFIED_PHONE_TTL = 30 * 60 * 1000; // 30 minutes
+
+export function setVerifiedPhone(phone: string): void {
+  const stmt = db.prepare(`INSERT OR REPLACE INTO verified_phones (phone, verified_at) VALUES (?, ?)`);
+  stmt.run(phone, Date.now());
+}
+
+export function isPhoneVerifiedDB(phone: string): boolean {
+  const stmt = db.prepare(`SELECT verified_at FROM verified_phones WHERE phone = ?`);
+  const row = stmt.get(phone) as { verified_at: number } | undefined;
+  if (!row) return false;
+  if (Date.now() - row.verified_at > VERIFIED_PHONE_TTL) {
+    db.prepare(`DELETE FROM verified_phones WHERE phone = ?`).run(phone);
+    return false;
+  }
+  return true;
+}
+
+// Clean expired verified phones periodically.
+setInterval(() => {
+  const cutoff = Date.now() - VERIFIED_PHONE_TTL;
+  db.prepare(`DELETE FROM verified_phones WHERE verified_at < ?`).run(cutoff);
+}, 5 * 60 * 1000);
+
+// --- Pending payment intents (persistent, replaces in-memory Map) ---
+
+export interface PendingIntent {
+  paymob_order_id: string;
+  order_id: string;
+  amount: number;
+  payment_method_id: string;
+  method: string;
+  settled: boolean;
+}
+
+export function setPendingIntent(intent: PendingIntent): void {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO pending_intents
+    (paymob_order_id, order_id, amount, payment_method_id, method, settled)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  stmt.run(
+    intent.paymob_order_id,
+    intent.order_id,
+    intent.amount,
+    intent.payment_method_id,
+    intent.method,
+    intent.settled ? 1 : 0,
+  );
+}
+
+export function getPendingIntent(paymobOrderId: string): PendingIntent | null {
+  const stmt = db.prepare(`SELECT * FROM pending_intents WHERE paymob_order_id = ?`);
+  const row = stmt.get(paymobOrderId) as any;
+  if (!row) return null;
+  return {
+    paymob_order_id: row.paymob_order_id,
+    order_id: row.order_id,
+    amount: row.amount,
+    payment_method_id: row.payment_method_id,
+    method: row.method,
+    settled: !!row.settled,
+  };
+}
+
+export function markIntentSettled(paymobOrderId: string): void {
+  db.prepare(`UPDATE pending_intents SET settled = 1 WHERE paymob_order_id = ?`).run(paymobOrderId);
 }

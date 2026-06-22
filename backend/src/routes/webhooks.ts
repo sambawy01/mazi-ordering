@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+import crypto from 'crypto';
 import { logWebhookEvent } from '../db/index.js';
 import { sendToWaiters, sendToTable } from '../services/websocket-service.js';
+import { config } from '../config.js';
+import { validateSession } from '../services/auth-service.js';
 
 /**
  * Webhook receiver: Foodics sends event notifications here.
@@ -16,6 +19,37 @@ import { sendToWaiters, sendToTable } from '../services/websocket-service.js';
  */
 export async function webhookRoutes(app: FastifyInstance): Promise<void> {
   app.post('/webhooks/foodics', async (request, reply) => {
+    // Foodics webhook signature verification.
+    // Foodics sends a signature in the X-Foodics-Signature header (HMAC-SHA256 of the raw body).
+    // If FOODICS_WEBHOOK_SECRET is set, verify it. In production without a secret, reject.
+    const foodicsSecret = process.env.FOODICS_WEBHOOK_SECRET;
+    const signature = request.headers['x-foodics-signature'] as string | undefined;
+
+    if (config.backend.isProd && !foodicsSecret) {
+      console.error('[Webhook] FOODICS_WEBHOOK_SECRET not set in production — rejecting Foodics webhook');
+      return reply.code(500).send({ error: 'Webhook secret not configured' });
+    }
+    if (foodicsSecret) {
+      if (!signature) {
+        console.warn('[Webhook] Missing X-Foodics-Signature header');
+        return reply.code(401).send({ error: 'Missing signature' });
+      }
+      // Verify HMAC-SHA256
+      const rawBody = JSON.stringify(request.body ?? {});
+      const computed = crypto
+        .createHmac('sha256', foodicsSecret)
+        .update(rawBody)
+        .digest('hex');
+      try {
+        if (computed !== signature) {
+          console.warn('[Webhook] Foodics signature mismatch');
+          return reply.code(401).send({ error: 'Invalid signature' });
+        }
+      } catch {
+        return reply.code(401).send({ error: 'Signature verification failed' });
+      }
+    }
+
     const body = (request.body ?? {}) as {
       event?: string;
       resource_type?: string;
@@ -78,8 +112,12 @@ export async function webhookRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(200).send({ received: true });
   });
 
-  // GET /webhooks/events — recent webhook events (for debugging)
+  // GET /webhooks/events — recent webhook events (waiter only, for debugging)
   app.get('/webhooks/events', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) return reply.code(401).send({ error: 'Waiter auth required' });
+    const session = validateSession(auth.slice(7));
+    if (!session) return reply.code(401).send({ error: 'Invalid or expired session' });
     const db = (await import('../db/index.js')).getDB();
     const events = db.prepare(`
       SELECT * FROM webhook_events ORDER BY received_at DESC LIMIT 50
